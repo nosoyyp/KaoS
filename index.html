@@ -79,11 +79,24 @@ dialog{border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);wi
 dialog::backdrop{background:#1119}.dialogactions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 @media(min-width:760px){.widgets{grid-template-columns:repeat(2,minmax(0,1fr))}.widget{min-height:165px;padding:24px}.card{padding:22px}.schedule{min-width:0}.lesson{height:42px}}
 @media(max-width:480px){.app{padding:12px 12px 105px}.formgrid{grid-template-columns:1fr}.card{padding:14px}.widgets{gap:10px}.widget{padding:13px;min-height:125px}.widget .big{font-size:29px}}
+.authGate{max-width:430px;margin:9vh auto 30px;padding:22px;background:var(--panel);border:1.5px solid var(--ink);box-shadow:var(--shadow)}
+.authGate h2{margin-top:0}.authGate input{width:100%;margin:5px 0 12px}.authGate .btn{width:100%;margin:5px 0}.authStatus{min-height:22px;color:var(--muted);font-size:13px}.accountbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="app">
+<section class="authGate" id="authGate">
+ <div class="kicker">KAOS · SINCRONIZACIÓN</div>
+ <h2>Entra en tu cuenta</h2>
+ <p class="muted">Usa el mismo correo y contraseña en el móvil y en el ordenador para tener tus datos sincronizados.</p>
+ <label for="authEmail">Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" placeholder="tu correo" required>
+ <label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Tu contraseña" required>
+ <button class="btn primary" type="button" onclick="loginKAOS()">Iniciar sesión</button>
+ <button class="btn" type="button" onclick="registerKAOS()">Crear cuenta</button>
+ <p class="authStatus" id="authStatus">Si todavía no tienes cuenta, pulsa «Crear cuenta».</p>
+</section>
+<div class="app" id="mainApp">
 <header><div><div class="kicker">CURSO 2026/2027 · 4.º ESO</div><h1>KAOS<br><em id="subtitleText">Organiza tu curso</em></h1><button class="editSubtitle" onclick="editSubtitle()">Editar texto</button></div><div class="topicons"><button class="iconbtn" onclick="toggleTheme()" aria-label="Tema">⚙</button></div></header>
+<div class="accountbar"><span id="accountEmail"></span><button class="btn" type="button" onclick="logoutKAOS()">Cerrar sesión</button><span id="syncStatus">Sincronización pendiente</span></div>
 <div class="streak"><span class="flame">♨</span><strong id="streakTitle">Racha sin activar</strong><span id="streakCount">0 días</span></div>
 <div class="widgets">
  <div class="widget"><div class="sectiontitle"><strong>Fin de curso</strong><button onclick="changeEnd()">cambiar</button></div><div class="big" id="countdown">-- días</div><div class="muted" id="endLabel"></div></div>
@@ -102,28 +115,57 @@ dialog::backdrop{background:#1119}.dialogactions{display:flex;gap:8px;justify-co
 <div class="bottomspace"></div>
 </div>
 <div class="stickyAction" id="stickyAction"><button onclick="quickAdd()">＋ Añadir al horario</button></div>
-
 <dialog id="dlg"><form id="dlgForm"><h2 id="dlgTitle">Añadir</h2><div id="dlgBody"></div><div class="dialogactions"><button class="btn" type="button" onclick="closeDlg()">Cancelar</button><button class="btn primary" id="dlgSave" type="submit">Guardar</button></div></form></dialog>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
+// Configuración de Firebase del proyecto KAOS.
+const firebaseConfig = {
+  apiKey: "AIzaSyBClzAPRCRL5IZh_zFtoSgN8yTFt2yZ7g8",
+  authDomain: "kaos-eee33.firebaseapp.com",
+  projectId: "kaos-eee33",
+  storageBucket: "kaos-eee33.firebasestorage.app",
+  messagingSenderId: "668606000241",
+  appId: "1:668606000241:web:ec5b9afaed8f5ad91cffd0"
+};
+const firebaseConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith('PEGA_AQUI'));
+let authUser = null, cloudReady = false, applyingCloud = false, cloudUnsubscribe = null;
+let auth, db;
+if (firebaseConfigured) {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+}
+function authMessage(message){const el=document.getElementById('authStatus');if(el)el.textContent=message;}
+function loginKAOS(){if(!firebaseConfigured){authMessage('Falta añadir la configuración de Firebase en el archivo.');return;}const email=$('#authEmail').value.trim(),password=$('#authPassword').value;if(!email||!password){authMessage('Escribe tu correo y contraseña.');return;}auth.signInWithEmailAndPassword(email,password).catch(e=>authMessage(authError(e)));}
+function registerKAOS(){if(!firebaseConfigured){authMessage('Falta añadir la configuración de Firebase en el archivo.');return;}const email=$('#authEmail').value.trim(),password=$('#authPassword').value;if(!email||!password){authMessage('Escribe tu correo y contraseña.');return;}if(password.length<6){authMessage('La contraseña debe tener al menos 6 caracteres.');return;}auth.createUserWithEmailAndPassword(email,password).catch(e=>authMessage(authError(e)));}
+function logoutKAOS(){if(auth)auth.signOut();}
+function authError(e){const m={ 'auth/email-already-in-use':'Ese correo ya tiene una cuenta. Prueba a iniciar sesión.','auth/invalid-email':'El correo no parece válido.','auth/weak-password':'La contraseña debe tener al menos 6 caracteres.','auth/user-not-found':'No existe una cuenta con ese correo. Pulsa «Crear cuenta» si aún no la tienes.','auth/wrong-password':'La contraseña no es correcta.','auth/invalid-credential':'El correo o la contraseña no son correctos.','auth/too-many-requests':'Has hecho demasiados intentos. Espera un poco y vuelve a probar.'};return m[e.code]||'No se ha podido acceder. Comprueba la conexión e inténtalo otra vez.';}
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const colors=['#dcebdc','#a9c9ad','#6e9b78','#39724c','#c6dfd0','#7eaa9a','#b6c7a4','#e1e8c9','#d4e0d6','#879b8b'];
-let data=JSON.parse(localStorage.getItem('kaosDataV2')||'null')||{end:'2027-06-18',target:9,subjects:[],events:[],habits:[],schedule:{},checks:{},theme:'light'};
+function emptyKAOSData(){return {end:'2027-06-18',target:9,subjects:[],events:[],habits:[],schedule:{},checks:{},theme:'light'};}
+let data=JSON.parse(localStorage.getItem('kaosDataV2')||'null')||emptyKAOSData();
 let currentTerm='all',dlgAction=null;
-function save(){localStorage.setItem('kaosDataV2',JSON.stringify(data));render()}
+function hasUsefulLocalData(d){return !!(d&&(d.subjects?.length||d.events?.length||d.habits?.length||Object.keys(d.schedule||{}).length||Object.keys(d.checks||{}).length));}
+function mergeById(remote=[],local=[]){const m=new Map();[...(remote||[]),...(local||[])].forEach(x=>m.set(String(x.id??x.name??JSON.stringify(x)),x));return [...m.values()];}
+function mergeKAOSData(remote,local){if(!hasUsefulLocalData(local))return {...emptyKAOSData(),...(remote||{})};if(!remote)return local;const merged={...remote,...local};merged.subjects=mergeById(remote.subjects,local.subjects).map(s=>{const r=(remote.subjects||[]).find(x=>String(x.id)===String(s.id))||{};const l=(local.subjects||[]).find(x=>String(x.id)===String(s.id))||{};return {...r,...l,topics:mergeById(r.topics||[],l.topics||[]),grades:mergeById(r.grades||[],l.grades||[])};});merged.events=mergeById(remote.events,local.events);merged.habits=mergeById(remote.habits,local.habits);merged.schedule={...(remote.schedule||{}),...(local.schedule||{})};merged.checks={...(remote.checks||{})};Object.entries(local.checks||{}).forEach(([day,ids])=>merged.checks[day]=[...new Set([...(merged.checks[day]||[]),...(ids||[])])]);return merged;}
+async function pushCloudData(){if(!authUser||!cloudReady||applyingCloud)return;try{await db.collection('users').doc(authUser.uid).set({data:data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});$('#syncStatus').textContent='Sincronizado';}catch(e){$('#syncStatus').textContent='Error al sincronizar. Comprueba la conexión.';}}
+function save(){localStorage.setItem('kaosDataV2',JSON.stringify(data));render();pushCloudData();}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function openDlg(title,body,action){$('#dlgTitle').textContent=title;$('#dlgBody').innerHTML=body;dlgAction=action;$('#dlg').showModal()}
-$('#dlgForm').addEventListener('submit',e=>{e.preventDefault();if(!e.currentTarget.reportValidity())return;if(dlgAction){dlgAction(new FormData(e.currentTarget));$('#dlg').close()}});
+$('#dlgForm').addEventListener('submit',e=>{e.preventDefault();const form=e.currentTarget;if(!form.reportValidity())return;if(!dlgAction)return;try{dlgAction(new FormData(form));dlgAction=null;$('#dlg').close()}catch(error){console.error('Error al guardar en KAOS:',error);alert('No se ha podido guardar. Revisa los datos e inténtalo de nuevo.')}});
 function closeDlg(){$('#dlg').close();dlgAction=null}
 function todayISO(){let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fmt(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}
 function days(s){return Math.ceil((new Date(s+'T00:00:00')-new Date(todayISO()+'T00:00:00'))/86400000)}
-function subject(id){return data.subjects.find(x=>x.id===id)}
+function subject(id){return data.subjects.find(x=>String(x.id)===String(id))}
 function subjectOptions(selectedId){return data.subjects.map(s=>`<option value="${s.id}" ${String(s.id)===String(selectedId)?'selected':''}>${esc(s.name)}</option>`).join('')}
 function setTab(t){$$('.panel').forEach(p=>p.classList.toggle('active',p.id===t));$$('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));$('#stickyAction').querySelector('button').textContent=({hoy:'＋ Añadir al horario',semana:'＋ Añadir al horario',fechas:'＋ Apuntar examen o entrega',temario:'＋ Añadir asignatura',notas:'＋ Apuntar una nota',habitos:'＋ Añadir hábito o entreno'})[t];}
 $('#tabs').addEventListener('click',e=>{let b=e.target.closest('button[data-tab]');if(b)setTab(b.dataset.tab)});
 function quickAdd(){let t=$('.panel.active').id;if(t==='fechas')eventDialog();else if(t==='habitos')habitDialog();else if(t==='temario')subjectDialog();else if(t==='notas')gradeDialog();else scheduleDialog()}
 function editSubtitle(){let current=data.subtitle||'Organiza tu curso';let value=prompt('¿Qué texto quieres debajo de KAOS?',current);if(value===null)return;data.subtitle=value.trim();save()}
-function toggleTheme(){data.theme=data.theme==='dark'?'light':'dark';document.body.classList.toggle('dark',data.theme==='dark');localStorage.setItem('kaosDataV2',JSON.stringify(data))}
+function toggleTheme(){data.theme=data.theme==='dark'?'light':'dark';document.body.classList.toggle('dark',data.theme==='dark');localStorage.setItem('kaosDataV2',JSON.stringify(data));pushCloudData();}
 function changeEnd(){openDlg('Fin de curso',`<label>Fecha de fin de curso</label><input class="field" name="date" type="date" value="${data.end}">`,f=>{data.end=f.get('date');save()})}
 function changeTarget(){openDlg('Nota objetivo',`<label>Media que quieres conseguir</label><input class="field" name="target" type="number" min="0" max="10" step=".1" value="${data.target}">`,f=>{data.target=+f.get('target');save()})}
 function subjectAverage(s,term='all'){let gs=s.grades||[];if(term!=='all'){let a=gs.filter(g=>g.term===+term),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null}let means=[1,2,3].map(t=>{let a=gs.filter(g=>g.term===t),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null});let weights=s.terms||[33.34,33.33,33.33],usable=means.map((v,i)=>v===null?0:weights[i]),total=usable.reduce((a,b)=>a+b,0);return total?means.reduce((a,v,i)=>a+(v===null?0:v*usable[i]),0)/total:null}
@@ -143,7 +185,7 @@ function renderOverview(){
  names.forEach((name,i)=>{
   const date=new Date(monday);date.setDate(monday.getDate()+i);
   const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
-  const jsDay=(i+1)%7;
+  const jsDay=i;
   const hasExam=data.events.some(e=>e.date===iso&&e.type==='Examen');
   const occupied=new Map();
   if(i<5){
@@ -188,7 +230,7 @@ function renderOverview(){
 function textColor(hex){let c=hex.replace('#','');if(c.length!==6)return '#24352b';let r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);return (r*.299+g*.587+b*.114)<145?'#fff':'#24352b'}
 function renderSchedule(){let names=['Lunes','Martes','Miércoles','Jueves','Viernes'];let now=new Date(),monday=new Date(now);monday.setDate(now.getDate()-((now.getDay()+6)%7));let h='<table class="schedule"><tr><th>Hora</th>'+names.map((n,i)=>{let d=new Date(monday);d.setDate(monday.getDate()+i);let iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');let dot=data.events.some(e=>e.date===iso&&e.type==='Examen')?'<span class="examDot">●</span>':'';return `<th>${n.slice(0,3).toUpperCase()} ${dot}</th>`}).join('')+'</tr>';for(let p=1;p<=7;p++){if(p===4)h+=`<tr><td class="time">Recreo</td>`+names.map(()=>'<td class="recess">25 min</td>').join('')+'</tr>';if(p===7)h+=`<tr><td class="time">Recreo</td>`+names.map((_,i)=>i<2?'<td class="recess">15 min</td>':'<td class="muted small">Fin</td>').join('')+'</tr>';h+=`<tr><td class="time">${p}ª</td>`+names.map((n,i)=>{let v=data.schedule[i+'-'+p];return `<td>${p===7&&i>=2?'<span class="recess emptySlot">Libre</span>':v?`<button class="lesson" style="background:${v.color};color:${textColor(v.color)}" onclick="scheduleDialog('${i}-${p}')">${esc(v.name)}</button>`:`<button class="empty" onclick="scheduleDialog('${i}-${p}')">＋</button>`}</td>`}).join('')+'</tr>'}return h+'</table>'}
 function scheduleDialog(key){let day=key?+key.split('-')[0]:0,period=key?+key.split('-')[1]:1,old=data.schedule[key]||{};let oldSubject=old.subjectId||data.subjects.find(x=>x.name===old.name)?.id||'';openDlg('Casilla del horario',`<label>Día</label><select name="day">${['Lunes','Martes','Miércoles','Jueves','Viernes'].map((n,i)=>`<option value="${i}" ${i===day?'selected':''}>${n}</option>`)}</select><label>Hora de clase</label><select name="period">${Array.from({length:7},(_,i)=>`<option value="${i+1}" ${i+1===period?'selected':''}>${i+1}ª hora</option>`).join('')}</select><label>Asignatura</label><select name="subject"><option value="">Otra actividad / libre</option>${subjectOptions(oldSubject)}</select><label>Nombre (si no es asignatura)</label><input class="field" name="name" value="${esc(old.name||'')}"><label>Color</label><input name="color" type="color" value="${old.color||'#a9c9ad'}">`,f=>{let k=f.get('day')+'-'+f.get('period'),s=subject(f.get('subject'));let name=s?.name||f.get('name');if(name)data.schedule[k]={name,color:s?.color||f.get('color'),subjectId:s?.id||null};else delete data.schedule[k];save()})}
-function eventDialog(id){if(!data.subjects.length){alert('Añade primero una asignatura en Temario.');return}let e=data.events.find(x=>x.id===id)||{};openDlg(id?'Editar fecha':'Apuntar examen o entrega',`<label>Tipo</label><div class="row"><label><input type="radio" name="type" value="Examen" ${!e.type||e.type==='Examen'?'checked':''}> Examen</label><label><input type="radio" name="type" value="Entrega" ${e.type==='Entrega'?'checked':''}> Entrega</label></div><label>Asignatura</label><select class="field" name="subject" required>${subjectOptions(e.subject)}</select><label>¿Sobre qué?</label><input class="field" name="title" required value="${esc(e.title||'')}" placeholder="Ej. Tema 1"><label>Fecha</label><input class="field" type="date" name="date" required value="${e.date||todayISO()}">`,f=>{let s=subject(f.get('subject'));let item={id:e.id||Date.now(),type:f.get('type'),subject:f.get('subject'),title:f.get('title'),date:f.get('date')};if(e.id)data.events=data.events.map(x=>x.id===e.id?item:x);else data.events.push(item);save()})}
+function eventDialog(id){if(!data.subjects.length){alert('Añade primero una asignatura en Temario.');return}let e=data.events.find(x=>x.id===id)||{};openDlg(id?'Editar fecha':'Apuntar examen o entrega',`<label>Tipo</label><div class="row"><label><input type="radio" name="type" value="Examen" ${!e.type||e.type==='Examen'?'checked':''}> Examen</label><label><input type="radio" name="type" value="Entrega" ${e.type==='Entrega'?'checked':''}> Entrega</label></div><label>Asignatura</label><select class="field" name="subject" required>${subjectOptions(e.subject)}</select><label>¿Sobre qué?</label><input class="field" name="title" required value="${esc(e.title||'')}" placeholder="Ej. Tema 1"><label>Fecha</label><input class="field" type="date" name="date" required value="${e.date||todayISO()}">`,f=>{let item={id:e.id||Date.now(),type:f.get('type'),subject:f.get('subject'),title:f.get('title'),date:f.get('date')};if(e.id)data.events=data.events.map(x=>x.id===e.id?item:x);else data.events.push(item);save()})}
 function renderEvents(){let ev=data.events.filter(e=>e.date>=todayISO()).sort((a,b)=>a.date.localeCompare(b.date));$('#eventCount').textContent=ev.length+' por delante';$('#eventList').innerHTML=ev.length?ev.map(e=>{let s=subject(e.subject),d=days(e.date);return `<div class="listitem"><div class="count">${d===0?'HOY':d}<small>${d===0?'':'DÍAS'}</small></div><div style="flex:1"><div><span class="swatch" style="background:${s?.color||'#a9c9ad'}"></span> <b>${e.type}</b> · ${esc(s?.name||'')}</div><div>${esc(e.title)} · ${fmt(e.date)}</div></div><button class="iconbtn" onclick="eventDialog(${e.id})">▣</button><button class="iconbtn" onclick="deleteEvent(${e.id})">×</button></div>`}).join(''):'<p class="muted">No tienes fechas apuntadas.</p>'}
 function deleteEvent(id){if(confirm('¿Borrar esta fecha?')){data.events=data.events.filter(x=>x.id!==id);save()}}
 function subjectDialog(id){let s=subject(id)||{};openDlg(id?'Editar asignatura':'Añadir asignatura',`<label>Nombre</label><input class="field" name="name" required value="${esc(s.name||'')}"><div class="formgrid"><div><label>Color</label><input class="field" name="color" type="color" value="${s.color||'#a9c9ad'}"></div><div><label>Dificultad</label><select class="field" name="difficulty"><option value="1" ${s.difficulty==1?'selected':''}>Fácil</option><option value="2" ${!s.difficulty||s.difficulty==2?'selected':''}>Media</option><option value="3" ${s.difficulty==3?'selected':''}>Difícil</option></select></div></div><label>Reparto de trimestres</label><select class="field" name="distribution" id="distribution" onchange="$('#customTerms').style.display=this.value==='custom'?'block':'none'"><option value="normal" ${s.distribution!=='custom'?'selected':''}>Normal (33,33 % cada trimestre)</option><option value="custom" ${s.distribution==='custom'?'selected':''}>Personalizado</option></select><div id="customTerms" style="display:${s.distribution==='custom'?'block':'none'}"><div class="formgrid">${[1,2,3].map((n)=>`<div><label>${n}.º trimestre (%)</label><input name="t${n}" type="number" min="0" max="100" value="${s.terms?.[n-1]??(n===1?33.34:33.33)}"></div>`).join('')}</div></div>`,f=>{let obj={id:s.id||Date.now(),name:f.get('name'),color:f.get('color'),difficulty:+f.get('difficulty'),distribution:f.get('distribution'),terms:f.get('distribution')==='custom'?[+f.get('t1'),+f.get('t2'),+f.get('t3')]:[33.34,33.33,33.33],topics:s.topics||[],grades:s.grades||[]};if(s.id)data.subjects=data.subjects.map(x=>x.id===s.id?obj:x);else data.subjects.push(obj);save()})}
@@ -197,14 +239,14 @@ function deleteSubject(id){if(confirm('¿Borrar esta asignatura y sus notas?')){
 function topicDialog(id){openDlg('Añadir tema',`<label>Nombre del tema</label><input class="field" name="name" required>`,f=>{subject(id).topics.push({name:f.get('name'),status:'Sin empezar'});save()})}
 function setTopicStatus(id,i,v){subject(id).topics[i].status=v;save()}
 function deleteTopic(id,i){subject(id).topics.splice(i,1);save()}
-function gradeDialog(id){let s=subject(id);if(!data.subjects.length){alert('Añade primero una asignatura.');return}openDlg('Apuntar una nota',`<label>Asignatura</label><select name="subject" class="field">${subjectOptions(id)}</select><label>¿Qué era?</label><input class="field" name="title" required placeholder="Ej. Examen tema 1"><div class="formgrid"><div><label>Nota (0 a 10)</label><input class="field" type="number" name="grade" min="0" max="10" step=".01" required></div><div><label>Trimestre</label><select class="field" name="term"><option value="1">1.º</option><option value="2">2.º</option><option value="3">3.º</option></select></div></div><label>Peso dentro del trimestre (%)</label><input class="field" name="weight" type="number" min="1" max="100" value="100" required>`,f=>{let s=subject(+f.get('subject'));s.grades.push({id:Date.now(),title:f.get('title'),grade:+f.get('grade'),term:+f.get('term'),weight:+f.get('weight')});save()})}
+function gradeDialog(id){if(!data.subjects.length){alert('Añade primero una asignatura.');return}openDlg('Apuntar una nota',`<label>Asignatura</label><select name="subject" class="field">${subjectOptions(id)}</select><label>¿Qué era?</label><input class="field" name="title" required placeholder="Ej. Examen tema 1"><div class="formgrid"><div><label>Nota (0 a 10)</label><input class="field" type="number" name="grade" min="0" max="10" step=".01" required></div><div><label>Trimestre</label><select class="field" name="term"><option value="1">1.º</option><option value="2">2.º</option><option value="3">3.º</option></select></div></div><label>Peso dentro del trimestre (%)</label><input class="field" name="weight" type="number" min="1" max="100" value="100" required>`,f=>{let s=subject(+f.get('subject'));s.grades.push({id:Date.now(),title:f.get('title'),grade:+f.get('grade'),term:+f.get('term'),weight:+f.get('weight')});save()})}
 function renderGrades(){let list=data.subjects;$('#gradeList').innerHTML=list.map(s=>{let gs=s.grades.filter(g=>currentTerm==='all'||g.term===+currentTerm);let avg=subjectAverage(s,currentTerm);return `<div class="card"><div class="sectiontitle"><div class="row"><span class="swatch" style="background:${s.color}"></span><b>${esc(s.name)}</b></div><div class="row"><span class="muted">${avg===null?'Sin notas':'Media '+avg.toFixed(2)}</span><button class="btn" onclick="gradeDialog(${s.id})">＋ Nota</button></div></div>${gs.map(g=>`<div class="gradebox"><div class="row between"><b>${esc(g.title)}</b><b>${g.grade.toString().replace('.',',')}</b></div><div class="muted small">Peso ${g.weight}% · ${g.term}.º trimestre</div><div class="row" style="justify-content:flex-end"><button class="btn danger" onclick="deleteGrade(${s.id},${g.id})">Borrar</button></div></div>`).join('')||'<p class="muted">Todavía no hay notas en este apartado.</p>'}</div>`}).join('')}
 function deleteGrade(sid,gid){let s=subject(sid);s.grades=s.grades.filter(g=>g.id!==gid);save()}
 $('#termButtons').addEventListener('click',e=>{let b=e.target.closest('button[data-term]');if(!b)return;currentTerm=b.dataset.term;$$('#termButtons button').forEach(x=>x.classList.toggle('primary',x===b));renderGrades()});
 function habitDialog(id){let h=data.habits.find(x=>x.id===id)||{};openDlg(id?'Editar hábito':'Añadir hábito o entreno',`<label>Tipo</label><select name="type" class="field"><option ${h.type!=='Entreno'?'selected':''}>Hábito</option><option ${h.type==='Entreno'?'selected':''}>Entreno</option></select><label>Nombre</label><input class="field" name="name" required value="${esc(h.name||'')}"><label>Días de la semana</label><div class="row">${['L','M','X','J','V','S','D'].map((d,i)=>`<label><input type="checkbox" name="day" value="${i}" ${(h.days||[]).includes(i)?'checked':''}>${d}</label>`).join('')}</div><label>Hora (opcional)</label><input class="field" name="time" type="time" value="${h.time||''}">`,f=>{let obj={id:h.id||Date.now(),type:f.get('type'),name:f.get('name'),days:f.getAll('day').map(Number),time:f.get('time')};if(h.id)data.habits=data.habits.map(x=>x.id===h.id?obj:x);else data.habits.push(obj);save()})}
-function renderHabits(){let names=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];$('#habitList').innerHTML=data.habits.map(h=>`<div class="listitem"><div style="flex:1"><b>${esc(h.name)}</b><div class="muted small">${h.type} · ${h.days.map(d=>names[(d+0)%7].slice(0,3)).join(', ')} ${h.time?'· '+h.time:''}</div></div><button class="btn" onclick="habitDialog(${h.id})">Editar</button><button class="btn danger" onclick="deleteHabit(${h.id})">×</button></div>`).join('')||'<p class="muted">Todavía no has añadido hábitos.</p>'}
+function renderHabits(){let names=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];$('#habitList').innerHTML=data.habits.map(h=>`<div class="listitem"><div style="flex:1"><b>${esc(h.name)}</b><div class="muted small">${h.type} · ${h.days.map(d=>names[d].slice(0,3)).join(', ')} ${h.time?'· '+h.time:''}</div></div><button class="btn" onclick="habitDialog(${h.id})">Editar</button><button class="btn danger" onclick="deleteHabit(${h.id})">×</button></div>`).join('')||'<p class="muted">Todavía no has añadido hábitos.</p>'}
 function deleteHabit(id){data.habits=data.habits.filter(h=>h.id!==id);save()}
-function dueToday(h){return h.days.includes(new Date().getDay())}
+function dueToday(h){const day=(new Date().getDay()+6)%7;return (h.days||[]).map(Number).includes(day)}
 function renderToday(){
  let today=todayISO();$('#todayDateTitle').textContent=fmt(today);
  let ev=data.events.filter(e=>e.date===today);$('#todayEvents').innerHTML=ev.length?ev.map(e=>`<div class="listitem"><b>${esc(e.type)}</b><span>${esc(subject(e.subject)?.name||'')} · ${esc(e.title)}</span></div>`).join(''):'<p class="muted">No tienes exámenes ni entregas hoy.</p>';
@@ -217,6 +259,24 @@ function toggleHabit(id,on){let a=data.checks[todayISO()]||[];data.checks[todayI
 function searchPrompt(){let q=prompt('¿Qué quieres buscar?');if(!q)return;let match=data.subjects.find(s=>s.name.toLowerCase().includes(q.toLowerCase()));if(match){setTab('temario');document.getElementById('sub'+match.id)?.classList.add('open')}else alert('No he encontrado esa asignatura.')}
 function render(){document.body.classList.toggle('dark',data.theme==='dark');renderHome();$('#fullSchedule').innerHTML=renderSchedule();renderEvents();renderSubjects();renderGrades();renderHabits();renderToday()}
 render();
+if(firebaseConfigured){
+ auth.onAuthStateChanged(async user=>{
+  authUser=user;cloudReady=false;
+  if(cloudUnsubscribe){cloudUnsubscribe();cloudUnsubscribe=null;}
+  $('#authGate').style.display=user?'none':'block';$('#mainApp').style.display=user?'block':'none';
+  if(!user){$('#accountEmail').textContent='';$('#syncStatus').textContent='Sin sesión';return;}
+  $('#accountEmail').textContent='Cuenta: '+user.email;
+  $('#syncStatus').textContent='Conectando con la nube…';
+  try{
+   const ref=db.collection('users').doc(user.uid),snap=await ref.get();
+   const local=JSON.parse(localStorage.getItem('kaosDataV2')||'null')||emptyKAOSData();
+   if(!snap.exists){data=local;await ref.set({data:data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}
+   else{const remote=(snap.data()||{}).data||emptyKAOSData();data=mergeKAOSData(remote,local);localStorage.setItem('kaosDataV2',JSON.stringify(data));await ref.set({data:data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}
+   applyingCloud=true;localStorage.setItem('kaosDataV2',JSON.stringify(data));render();applyingCloud=false;cloudReady=true;$('#syncStatus').textContent='Sincronizado';
+   cloudUnsubscribe=ref.onSnapshot(doc=>{if(!doc.exists||!doc.data()?.data)return;const incoming=doc.data().data;if(JSON.stringify(incoming)!==JSON.stringify(data)){applyingCloud=true;data=incoming;localStorage.setItem('kaosDataV2',JSON.stringify(data));render();applyingCloud=false;}$('#syncStatus').textContent='Sincronizado';},()=>$('#syncStatus').textContent='No se ha podido actualizar la nube.');
+  }catch(e){applyingCloud=false;cloudReady=false;$('#syncStatus').textContent='Error de conexión con Firebase';authMessage('No se han podido cargar los datos. Comprueba la configuración y las reglas de Firestore.');}
+ });
+}else{authMessage('Antes de usar KAOS, hay que pegar la configuración de Firebase en este archivo.');$('#mainApp').style.display='none';}
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 </script>
 </body></html>
