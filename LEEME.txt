@@ -1,0 +1,24 @@
+KAOS · Primera versión
+
+ARCHIVOS
+- index.html: aplicación
+- manifest.json: configuración para instalarla como app
+- sw.js: caché para abrirla también sin conexión después de la primera visita
+- icon.svg: icono
+
+IMPORTANTE
+Para instalar KAOS en la pantalla de inicio como una PWA, la carpeta debe estar publicada en una dirección HTTPS. Abrir index.html como archivo local no basta para instalarla correctamente.
+
+FORMA SENCILLA DE PROBARLA
+1. Descomprime la carpeta en un ordenador.
+2. Abre index.html en un navegador para probar las pantallas (el guardado funciona en el navegador).
+3. Para instalarla en Android, primero hay que publicarla en un alojamiento HTTPS gratuito, por ejemplo GitHub Pages.
+4. Abre la dirección HTTPS en Chrome en tu Android.
+5. Menú ⋮ > Instalar aplicación o Añadir a pantalla de inicio.
+
+DATOS
+Los datos se guardan localmente en el navegador de ese dispositivo. En Ajustes puedes exportar e importar una copia JSON. No borres los datos del sitio si quieres conservarlos.
+
+ESTADO DE ESTA VERSIÓN
+Es un primer prototipo funcional. Incluye navegación, horario editable, asignaturas y temario, exámenes/entregas, notas, hábitos/racha, calendario, tema claro/oscuro y colores de widgets.
+Aún faltan mejoras: edición de elementos ya creados, configuración exacta de trimestres y pesos restantes por evaluar, sincronización entre dispositivos y una configuración más completa del horario escolar.
