@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#edf2ed">
+<meta name="description" content="KAOS, tu organizador personal">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>KAOS</title>
+<style>
+:root{--bg:#eef2ed;--panel:#fbfcfa;--ink:#24352b;--muted:#69796d;--line:#d7e1d8;--green:#668b70;--green2:#dce9de;--shadow:5px 6px 0 #24352b18}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+body.dark{--bg:#17221b;--panel:#223027;--ink:#edf4ee;--muted:#b0c0b3;--line:#405344;--green:#a4c3a8;--green2:#304737;--shadow:5px 6px 0 #0004}
+button,input,select{font:inherit}button{cursor:pointer;color:inherit}
+.app{max-width:1100px;margin:auto;padding:16px 16px 110px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
+.editSubtitle{background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;padding:2px 0 8px}.emptySlot{display:block;height:32px;width:100%}.topicons{display:flex;gap:8px}.iconbtn{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:9px 12px;font-size:19px}
+.kicker{font-size:12px;letter-spacing:2px;color:var(--green);font-weight:800;text-transform:uppercase}
+h1{font-family:Georgia,serif;font-size:clamp(34px,7vw,58px);line-height:1.03;margin:7px 0 22px}
+h1 em{font-weight:400}
+.card{background:var(--panel);border:1.5px solid var(--ink);box-shadow:var(--shadow);padding:17px;border-radius:3px;margin:14px 0}
+.card h2,.card h3{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:12px}
+.streak{display:flex;align-items:center;gap:10px;background:var(--green2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:12px 0 18px;color:var(--ink);max-width:450px}
+.flame{color:#4c8a5c;font-size:22px}.streak strong{font-size:15px}.streak span:last-child{margin-left:auto;font-weight:750}
+.widgets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.widget{background:var(--green2);border:1.5px solid var(--ink);box-shadow:var(--shadow);padding:17px;min-height:135px}
+.widget .big{font-size:clamp(28px,5vw,42px);font-weight:800;line-height:1.1;margin:9px 0}
+.widget button{border:0;background:none;text-decoration:underline;color:var(--green);padding:0}
+.sectiontitle{display:flex;justify-content:space-between;align-items:center;gap:12px}
+nav{display:flex;overflow:auto;border-bottom:2px solid var(--ink);gap:0;margin:20px 0 12px}
+nav button{flex:1;min-width:66px;background:transparent;border:0;padding:12px 7px;color:var(--muted);font-weight:650}
+nav button.active{background:var(--ink);color:var(--bg)}
+.panel{display:none}.panel.active{display:block}
+.btn{background:var(--green2);border:1.5px solid var(--ink);box-shadow:3px 3px 0 #24352b22;border-radius:4px;padding:10px 14px;font-weight:700}
+.btn.primary{background:var(--green);color:white}.btn.danger{background:#f3e4e1;color:#7d342b}
+body.dark .btn.primary{color:#17221b}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.between{justify-content:space-between}
+input,select{background:var(--panel);color:var(--ink);border:1px solid var(--muted);border-radius:6px;padding:9px;max-width:100%}
+label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
+.field{width:100%}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stickyAction{position:fixed;z-index:5;bottom:0;left:0;right:0;background:var(--ink);padding:10px max(14px,calc((100vw - 1060px)/2));display:flex;gap:8px}
+.stickyAction button{flex:1;background:var(--green2);border:0;padding:14px 8px;font-weight:800;color:var(--ink)}
+.schedulewrap{overflow:auto}.schedule{border-collapse:collapse;width:100%;min-width:590px;table-layout:fixed}
+.schedule th,.schedule td{border:1px solid var(--line);padding:4px;text-align:center;height:48px}
+.schedule th{font-size:12px;color:var(--muted)}.schedule .time{width:58px;font-size:11px}
+.lesson{border:0;border-radius:3px;width:100%;height:36px;font-weight:700;font-size:12px;overflow:hidden}
+.recess{height:20px!important;background:repeating-linear-gradient(135deg,#dce5dc,#dce5dc 5px,#f7faf6 5px,#f7faf6 10px);color:#627367;font-size:11px}
+.empty{color:var(--muted);background:transparent;border:1px dashed var(--line);width:100%;height:36px}
+.listitem{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
+.count{border:1px solid var(--ink);min-width:62px;text-align:center;padding:7px;font-weight:800;background:var(--panel)}
+.count small{display:block;font-size:9px;letter-spacing:1px}
+.subjecthead{display:flex;align-items:center;gap:10px;cursor:pointer}
+.swatch{width:16px;height:16px;border:1px solid #24352b;display:inline-block;flex-shrink:0}
+.diff{width:10px;height:10px;border-radius:50%;display:inline-block}
+.subjectcard{padding:14px}.subjectdetails{display:none;padding:12px 0 0}.subjectcard.open .subjectdetails{display:block}
+.topic{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.gradebox{border:1px solid var(--line);padding:12px;margin:9px 0}
+.bottomspace{height:14px}
+.weektimeline{width:100%;min-width:0}
+.weekaxis,.weekdayrow{display:grid;grid-template-columns:42px repeat(28,minmax(0,1fr));gap:2px;align-items:center}
+.weekaxis{margin:2px 0 7px;color:var(--muted);font-size:10px}
+.weekaxis span{grid-column:span 1;text-align:center;white-space:nowrap}
+.weekaxis .axislabel{grid-column:1;text-align:left}
+.weekdayrow{margin:7px 0;min-height:27px}
+.weekdayname{font-size:11px;font-weight:750;white-space:nowrap}
+.weekdayname .examDot{display:inline-block;color:#c84b42;margin-left:2px;font-size:13px}
+.weekcell{height:23px;min-width:0;border-radius:2px;background:var(--green2);border:1px solid var(--line)}
+.weekcell.classcell{border-color:transparent}
+.weekcell.sportcell{background:#e99a43;border-color:#d27d26}
+.weekcell.habitcell{background:#7eaa9a;border-color:#628e7e}
+.weeklegend{display:flex;flex-wrap:wrap;gap:14px;margin-top:17px;font-size:12px;color:var(--muted)}
+.legenditem{display:flex;align-items:center;gap:6px}
+.legendchip{width:13px;height:13px;border-radius:3px;border:1px solid #24352b55;display:inline-block}
+.weekactivitylabels{margin:3px 0 7px 44px;font-size:10px;color:var(--muted)}
+.weekactivitylabels span{margin-right:9px}
+@media(max-width:480px){.weekaxis,.weekdayrow{grid-template-columns:34px repeat(28,minmax(0,1fr));gap:1px}.weekcell{height:20px;border-radius:1px}.weekaxis{font-size:9px}.weekdayname{font-size:10px}.weeklegend{gap:9px;font-size:11px}.weekactivitylabels{margin-left:35px}}
+dialog{border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);width:min(520px,calc(100% - 24px));padding:20px;box-shadow:8px 8px 0 #24352b30}
+dialog::backdrop{background:#1119}.dialogactions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+@media(min-width:760px){.widgets{grid-template-columns:repeat(2,minmax(0,1fr))}.widget{min-height:165px;padding:24px}.card{padding:22px}.schedule{min-width:0}.lesson{height:42px}}
+@media(max-width:480px){.app{padding:12px 12px 105px}.formgrid{grid-template-columns:1fr}.card{padding:14px}.widgets{gap:10px}.widget{padding:13px;min-height:125px}.widget .big{font-size:29px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><div class="kicker">CURSO 2026/2027 · 4.º ESO</div><h1>KAOS<br><em id="subtitleText">Organiza tu curso</em></h1><button class="editSubtitle" onclick="editSubtitle()">Editar texto</button></div><div class="topicons"><button class="iconbtn" onclick="toggleTheme()" aria-label="Tema">⚙</button></div></header>
+<div class="streak"><span class="flame">♨</span><strong id="streakTitle">Racha sin activar</strong><span id="streakCount">0 días</span></div>
+<div class="widgets">
+ <div class="widget"><div class="sectiontitle"><strong>Fin de curso</strong><button onclick="changeEnd()">cambiar</button></div><div class="big" id="countdown">-- días</div><div class="muted" id="endLabel"></div></div>
+ <div class="widget"><div class="sectiontitle"><strong>Tu media</strong><button onclick="changeTarget()">objetivo</button></div><div class="big"><span id="average">—</span> / <span id="target">9</span></div><div class="muted" id="averageHint">Añade tus notas para calcular la media</div></div>
+</div>
+<div class="card"><div class="sectiontitle"><h2>La semana entera</h2><span class="muted" id="freeHours"></span></div><div id="weekOverview"></div><p class="small muted">Vista de 8:00 a 22:00. Cada cuadradito representa media hora; las clases usan el color de su asignatura.</p></div>
+<nav id="tabs">
+<button class="active" data-tab="hoy">◷<br>Hoy</button><button data-tab="semana">▦<br>Semana</button><button data-tab="fechas">☆<br>Fechas</button><button data-tab="temario">▣<br>Temario</button><button data-tab="notas">▤<br>Notas</button><button data-tab="habitos">♧<br>Hábitos</button>
+</nav>
+<section id="hoy" class="panel active"><div class="card"><h2 id="todayDateTitle"></h2><div id="todayEvents"></div></div><div class="card"><h2>Se acerca</h2><div id="upcomingEvents"></div></div><div class="card"><div class="sectiontitle"><h2>Para hoy</h2><span id="habitTodayCount" class="muted"></span></div><div id="todayHabits"></div></div></section>
+<section id="semana" class="panel"><p class="muted">Tu horario de lunes a viernes, de primera a séptima hora.</p><div class="card"><div class="schedulewrap" id="fullSchedule"></div><p class="small muted">Pulsa una casilla para añadir o cambiar una clase. Los recreos se mantienen marcados.</p></div></section>
+<section id="fechas" class="panel"><p class="muted">Exámenes y entregas ordenados por fecha.</p><div class="card"><div class="sectiontitle"><h2>Lo que viene</h2><span id="eventCount" class="muted"></span></div><div id="eventList"></div></div></section>
+<section id="temario" class="panel"><p class="muted">Organiza tus asignaturas, temas y dificultad.</p><div id="subjectList"></div></section>
+<section id="notas" class="panel"><p class="muted">Consulta tus notas del curso o de cada trimestre.</p><div class="row" id="termButtons"><button class="btn primary" data-term="all">Curso</button><button class="btn" data-term="1">1.º</button><button class="btn" data-term="2">2.º</button><button class="btn" data-term="3">3.º</button></div><div id="gradeList"></div></section>
+<section id="habitos" class="panel"><p class="muted">Tus hábitos y entrenamientos de la semana.</p><div class="card"><div id="habitList"></div></div></section>
+<div class="bottomspace"></div>
+</div>
+<div class="stickyAction" id="stickyAction"><button onclick="quickAdd()">＋ Añadir al horario</button></div>
+
+<dialog id="dlg"><form id="dlgForm"><h2 id="dlgTitle">Añadir</h2><div id="dlgBody"></div><div class="dialogactions"><button class="btn" type="button" onclick="closeDlg()">Cancelar</button><button class="btn primary" id="dlgSave" type="submit">Guardar</button></div></form></dialog>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const colors=['#dcebdc','#a9c9ad','#6e9b78','#39724c','#c6dfd0','#7eaa9a','#b6c7a4','#e1e8c9','#d4e0d6','#879b8b'];
+let data=JSON.parse(localStorage.getItem('kaosDataV2')||'null')||{end:'2027-06-18',target:9,subjects:[],events:[],habits:[],schedule:{},checks:{},theme:'light'};
+let currentTerm='all',dlgAction=null;
+function save(){localStorage.setItem('kaosDataV2',JSON.stringify(data));render()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function openDlg(title,body,action){$('#dlgTitle').textContent=title;$('#dlgBody').innerHTML=body;dlgAction=action;$('#dlg').showModal()}
+$('#dlgForm').addEventListener('submit',e=>{e.preventDefault();if(!e.currentTarget.reportValidity())return;if(dlgAction){dlgAction(new FormData(e.currentTarget));$('#dlg').close()}});
+function closeDlg(){$('#dlg').close();dlgAction=null}
+function todayISO(){let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fmt(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}
+function days(s){return Math.ceil((new Date(s+'T00:00:00')-new Date(todayISO()+'T00:00:00'))/86400000)}
+function subject(id){return data.subjects.find(x=>x.id===id)}
+function subjectOptions(selectedId){return data.subjects.map(s=>`<option value="${s.id}" ${String(s.id)===String(selectedId)?'selected':''}>${esc(s.name)}</option>`).join('')}
+function setTab(t){$$('.panel').forEach(p=>p.classList.toggle('active',p.id===t));$$('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));$('#stickyAction').querySelector('button').textContent=({hoy:'＋ Añadir al horario',semana:'＋ Añadir al horario',fechas:'＋ Apuntar examen o entrega',temario:'＋ Añadir asignatura',notas:'＋ Apuntar una nota',habitos:'＋ Añadir hábito o entreno'})[t];}
+$('#tabs').addEventListener('click',e=>{let b=e.target.closest('button[data-tab]');if(b)setTab(b.dataset.tab)});
+function quickAdd(){let t=$('.panel.active').id;if(t==='fechas')eventDialog();else if(t==='habitos')habitDialog();else if(t==='temario')subjectDialog();else if(t==='notas')gradeDialog();else scheduleDialog()}
+function editSubtitle(){let current=data.subtitle||'Organiza tu curso';let value=prompt('¿Qué texto quieres debajo de KAOS?',current);if(value===null)return;data.subtitle=value.trim();save()}
+function toggleTheme(){data.theme=data.theme==='dark'?'light':'dark';document.body.classList.toggle('dark',data.theme==='dark');localStorage.setItem('kaosDataV2',JSON.stringify(data))}
+function changeEnd(){openDlg('Fin de curso',`<label>Fecha de fin de curso</label><input class="field" name="date" type="date" value="${data.end}">`,f=>{data.end=f.get('date');save()})}
+function changeTarget(){openDlg('Nota objetivo',`<label>Media que quieres conseguir</label><input class="field" name="target" type="number" min="0" max="10" step=".1" value="${data.target}">`,f=>{data.target=+f.get('target');save()})}
+function subjectAverage(s,term='all'){let gs=s.grades||[];if(term!=='all'){let a=gs.filter(g=>g.term===+term),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null}let means=[1,2,3].map(t=>{let a=gs.filter(g=>g.term===t),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null});let weights=s.terms||[33.34,33.33,33.33],usable=means.map((v,i)=>v===null?0:weights[i]),total=usable.reduce((a,b)=>a+b,0);return total?means.reduce((a,v,i)=>a+(v===null?0:v*usable[i]),0)/total:null}
+function calcAverage(){let vals=data.subjects.map(s=>subjectAverage(s)).filter(v=>v!==null);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null}
+function renderHome(){let sub=$('#subtitleText');if(sub)sub.textContent=data.subtitle||'Organiza tu curso';let d=days(data.end);$('#countdown').textContent=(d>=0?d:0)+' días';$('#endLabel').textContent=fmt(data.end);$('#target').textContent=data.target;let a=calcAverage();$('#average').textContent=a===null?'—':a.toFixed(2).replace('.',',');$('#averageHint').textContent=a===null?'Añade tus notas para calcular la media':a>=data.target?'¡Has alcanzado tu objetivo!':`Te faltan ${(data.target-a).toFixed(2)} puntos para tu objetivo`;let streak=streakCount();$('#streakTitle').textContent=streak>0?'Racha activada':'Racha sin activar';$('#streakCount').textContent=streak+' días';renderOverview()}
+function streakCount(){let n=0,d=new Date();if(!(data.checks[todayISO()]||[]).length)d.setDate(d.getDate()-1);for(let i=0;i<365;i++){let key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if((data.checks[key]||[]).length)n++;else break;d.setDate(d.getDate()-1)}return n}
+function renderOverview(){
+ const names=['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
+ const periods={1:0,2:2,3:4,4:7,5:9,6:11,7:13};
+ const monday=new Date();monday.setDate(monday.getDate()-((monday.getDay()+6)%7));
+ let html='<div class="weektimeline"><div class="weekaxis"><span class="axislabel"></span>';
+ const axis=[['8',0],['11',6],['14',12],['17',18],['20',24],['22',28]];
+ let last=0;
+ axis.forEach(([label,pos])=>{const span=Math.max(1,pos-last);html+=`<span style="grid-column:${last+2}/span ${span}">${label}</span>`;last=pos});
+ html+='</div>';
+ let freeCells=0,totalCells=0;
+ names.forEach((name,i)=>{
+  const date=new Date(monday);date.setDate(monday.getDate()+i);
+  const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  const jsDay=(i+1)%7;
+  const hasExam=data.events.some(e=>e.date===iso&&e.type==='Examen');
+  const occupied=new Map();
+  if(i<5){
+   for(let p=1;p<=7;p++){
+    if(p===7&&i>=2)continue;
+    const item=data.schedule[i+'-'+p];if(!item)continue;
+    const start=periods[p];
+    const linked=(item.subjectId?subject(item.subjectId):data.subjects.find(x=>x.name===item.name));
+    const color=linked?.color||item.color||'#a9c9ad';
+    for(let c=start;c<Math.min(start+2,28);c++)occupied.set(c,{type:'class',color,title:item.name});
+   }
+  }
+  const acts=data.habits.filter(h=>(h.days||[]).includes(jsDay));
+  const labels=[];
+  acts.forEach(h=>{
+   if(h.time){
+    const parts=h.time.split(':').map(Number),cell=Math.floor(((parts[0]*60+parts[1])-480)/30);
+    if(cell>=0&&cell<28){
+     const type=h.type==='Entreno'?'sport':'habit';
+     for(let c=cell;c<Math.min(cell+2,28);c++)if(!occupied.has(c))occupied.set(c,{type,title:h.name});
+    }
+    labels.push(`${esc(h.time)} ${esc(h.name)}`);
+   }else labels.push(`${esc(h.name)} (sin hora)`);
+  });
+  let cells='';
+  for(let c=0;c<28;c++){
+   const item=occupied.get(c);
+   if(!item){cells+='<span class="weekcell"></span>';freeCells++;totalCells++;continue}
+   totalCells++;
+   if(item.type==='class')cells+=`<span class="weekcell classcell" title="${esc(item.title)}" style="background:${item.color};border-color:${item.color}"></span>`;
+   else if(item.type==='sport')cells+=`<span class="weekcell sportcell" title="${esc(item.title)}"></span>`;
+   else cells+=`<span class="weekcell habitcell" title="${esc(item.title)}"></span>`;
+  }
+  html+=`<div class="weekdayrow"><div class="weekdayname">${name}${hasExam?'<span class="examDot">●</span>':''}</div>${cells}</div>`;
+  if(labels.length)html+=`<div class="weekactivitylabels">${labels.map(x=>`<span>${x}</span>`).join('')}</div>`;
+ });
+ html+='<div class="weeklegend"><span class="legenditem"><i class="legendchip" style="background:var(--green)"></i> Clase (color de asignatura)</span><span class="legenditem"><i class="legendchip" style="background:#e99a43"></i> Entreno</span><span class="legenditem"><i class="legendchip" style="background:#7eaa9a"></i> Hábito</span><span class="legenditem"><i class="legendchip" style="background:#c84b42;border-radius:50%"></i> Día con examen</span></div></div>';
+ $('#weekOverview').innerHTML=html;
+ const freeHours=(freeCells/2).toFixed(1).replace('.0','').replace('.',',');
+ $('#freeHours').textContent=freeHours+' h libres';
+}
+function textColor(hex){let c=hex.replace('#','');if(c.length!==6)return '#24352b';let r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);return (r*.299+g*.587+b*.114)<145?'#fff':'#24352b'}
+function renderSchedule(){let names=['Lunes','Martes','Miércoles','Jueves','Viernes'];let now=new Date(),monday=new Date(now);monday.setDate(now.getDate()-((now.getDay()+6)%7));let h='<table class="schedule"><tr><th>Hora</th>'+names.map((n,i)=>{let d=new Date(monday);d.setDate(monday.getDate()+i);let iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');let dot=data.events.some(e=>e.date===iso&&e.type==='Examen')?'<span class="examDot">●</span>':'';return `<th>${n.slice(0,3).toUpperCase()} ${dot}</th>`}).join('')+'</tr>';for(let p=1;p<=7;p++){if(p===4)h+=`<tr><td class="time">Recreo</td>`+names.map(()=>'<td class="recess">25 min</td>').join('')+'</tr>';if(p===7)h+=`<tr><td class="time">Recreo</td>`+names.map((_,i)=>i<2?'<td class="recess">15 min</td>':'<td class="muted small">Fin</td>').join('')+'</tr>';h+=`<tr><td class="time">${p}ª</td>`+names.map((n,i)=>{let v=data.schedule[i+'-'+p];return `<td>${p===7&&i>=2?'<span class="recess emptySlot">Libre</span>':v?`<button class="lesson" style="background:${v.color};color:${textColor(v.color)}" onclick="scheduleDialog('${i}-${p}')">${esc(v.name)}</button>`:`<button class="empty" onclick="scheduleDialog('${i}-${p}')">＋</button>`}</td>`}).join('')+'</tr>'}return h+'</table>'}
+function scheduleDialog(key){let day=key?+key.split('-')[0]:0,period=key?+key.split('-')[1]:1,old=data.schedule[key]||{};let oldSubject=old.subjectId||data.subjects.find(x=>x.name===old.name)?.id||'';openDlg('Casilla del horario',`<label>Día</label><select name="day">${['Lunes','Martes','Miércoles','Jueves','Viernes'].map((n,i)=>`<option value="${i}" ${i===day?'selected':''}>${n}</option>`)}</select><label>Hora de clase</label><select name="period">${Array.from({length:7},(_,i)=>`<option value="${i+1}" ${i+1===period?'selected':''}>${i+1}ª hora</option>`).join('')}</select><label>Asignatura</label><select name="subject"><option value="">Otra actividad / libre</option>${subjectOptions(oldSubject)}</select><label>Nombre (si no es asignatura)</label><input class="field" name="name" value="${esc(old.name||'')}"><label>Color</label><input name="color" type="color" value="${old.color||'#a9c9ad'}">`,f=>{let k=f.get('day')+'-'+f.get('period'),s=subject(f.get('subject'));let name=s?.name||f.get('name');if(name)data.schedule[k]={name,color:s?.color||f.get('color'),subjectId:s?.id||null};else delete data.schedule[k];save()})}
+function eventDialog(id){if(!data.subjects.length){alert('Añade primero una asignatura en Temario.');return}let e=data.events.find(x=>x.id===id)||{};openDlg(id?'Editar fecha':'Apuntar examen o entrega',`<label>Tipo</label><div class="row"><label><input type="radio" name="type" value="Examen" ${!e.type||e.type==='Examen'?'checked':''}> Examen</label><label><input type="radio" name="type" value="Entrega" ${e.type==='Entrega'?'checked':''}> Entrega</label></div><label>Asignatura</label><select class="field" name="subject" required>${subjectOptions(e.subject)}</select><label>¿Sobre qué?</label><input class="field" name="title" required value="${esc(e.title||'')}" placeholder="Ej. Tema 1"><label>Fecha</label><input class="field" type="date" name="date" required value="${e.date||todayISO()}">`,f=>{let s=subject(f.get('subject'));let item={id:e.id||Date.now(),type:f.get('type'),subject:f.get('subject'),title:f.get('title'),date:f.get('date')};if(e.id)data.events=data.events.map(x=>x.id===e.id?item:x);else data.events.push(item);save()})}
+function renderEvents(){let ev=data.events.filter(e=>e.date>=todayISO()).sort((a,b)=>a.date.localeCompare(b.date));$('#eventCount').textContent=ev.length+' por delante';$('#eventList').innerHTML=ev.length?ev.map(e=>{let s=subject(e.subject),d=days(e.date);return `<div class="listitem"><div class="count">${d===0?'HOY':d}<small>${d===0?'':'DÍAS'}</small></div><div style="flex:1"><div><span class="swatch" style="background:${s?.color||'#a9c9ad'}"></span> <b>${e.type}</b> · ${esc(s?.name||'')}</div><div>${esc(e.title)} · ${fmt(e.date)}</div></div><button class="iconbtn" onclick="eventDialog(${e.id})">▣</button><button class="iconbtn" onclick="deleteEvent(${e.id})">×</button></div>`}).join(''):'<p class="muted">No tienes fechas apuntadas.</p>'}
+function deleteEvent(id){if(confirm('¿Borrar esta fecha?')){data.events=data.events.filter(x=>x.id!==id);save()}}
+function subjectDialog(id){let s=subject(id)||{};openDlg(id?'Editar asignatura':'Añadir asignatura',`<label>Nombre</label><input class="field" name="name" required value="${esc(s.name||'')}"><div class="formgrid"><div><label>Color</label><input class="field" name="color" type="color" value="${s.color||'#a9c9ad'}"></div><div><label>Dificultad</label><select class="field" name="difficulty"><option value="1" ${s.difficulty==1?'selected':''}>Fácil</option><option value="2" ${!s.difficulty||s.difficulty==2?'selected':''}>Media</option><option value="3" ${s.difficulty==3?'selected':''}>Difícil</option></select></div></div><label>Reparto de trimestres</label><select class="field" name="distribution" id="distribution" onchange="$('#customTerms').style.display=this.value==='custom'?'block':'none'"><option value="normal" ${s.distribution!=='custom'?'selected':''}>Normal (33,33 % cada trimestre)</option><option value="custom" ${s.distribution==='custom'?'selected':''}>Personalizado</option></select><div id="customTerms" style="display:${s.distribution==='custom'?'block':'none'}"><div class="formgrid">${[1,2,3].map((n)=>`<div><label>${n}.º trimestre (%)</label><input name="t${n}" type="number" min="0" max="100" value="${s.terms?.[n-1]??(n===1?33.34:33.33)}"></div>`).join('')}</div></div>`,f=>{let obj={id:s.id||Date.now(),name:f.get('name'),color:f.get('color'),difficulty:+f.get('difficulty'),distribution:f.get('distribution'),terms:f.get('distribution')==='custom'?[+f.get('t1'),+f.get('t2'),+f.get('t3')]:[33.34,33.33,33.33],topics:s.topics||[],grades:s.grades||[]};if(s.id)data.subjects=data.subjects.map(x=>x.id===s.id?obj:x);else data.subjects.push(obj);save()})}
+function renderSubjects(){$('#subjectList').innerHTML=data.subjects.map(s=>`<div class="card subjectcard" id="sub${s.id}"><div class="subjecthead" onclick="this.parentElement.classList.toggle('open')"><span class="swatch" style="background:${s.color}"></span><span class="diff" style="background:${['#cce6d0','#78aa83','#285b39'][s.difficulty-1]}"></span><b style="flex:1">${esc(s.name)}</b><span class="muted">${s.topics.length} temas</span><b>＋</b></div><div class="subjectdetails"><div class="row"><button class="btn" onclick="topicDialog(${s.id})">＋ Tema</button><button class="btn" onclick="subjectDialog(${s.id})">Editar</button><button class="btn danger" onclick="deleteSubject(${s.id})">Borrar asignatura</button></div>${s.topics.map((t,i)=>`<div class="topic"><span>${esc(t.name)}</span><select onchange="setTopicStatus(${s.id},${i},this.value)">${['Sin empezar','Para estudiar','Revisado','Dominado','Listo'].map(v=>`<option ${t.status===v?'selected':''}>${v}</option>`).join('')}</select><button class="iconbtn" onclick="deleteTopic(${s.id},${i})">×</button></div>`).join('')||'<p class="muted">Sin temas todavía.</p>'}</div></div>`).join('')}
+function deleteSubject(id){if(confirm('¿Borrar esta asignatura y sus notas?')){data.subjects=data.subjects.filter(s=>s.id!==id);save()}}
+function topicDialog(id){openDlg('Añadir tema',`<label>Nombre del tema</label><input class="field" name="name" required>`,f=>{subject(id).topics.push({name:f.get('name'),status:'Sin empezar'});save()})}
+function setTopicStatus(id,i,v){subject(id).topics[i].status=v;save()}
+function deleteTopic(id,i){subject(id).topics.splice(i,1);save()}
+function gradeDialog(id){let s=subject(id);if(!data.subjects.length){alert('Añade primero una asignatura.');return}openDlg('Apuntar una nota',`<label>Asignatura</label><select name="subject" class="field">${subjectOptions(id)}</select><label>¿Qué era?</label><input class="field" name="title" required placeholder="Ej. Examen tema 1"><div class="formgrid"><div><label>Nota (0 a 10)</label><input class="field" type="number" name="grade" min="0" max="10" step=".01" required></div><div><label>Trimestre</label><select class="field" name="term"><option value="1">1.º</option><option value="2">2.º</option><option value="3">3.º</option></select></div></div><label>Peso dentro del trimestre (%)</label><input class="field" name="weight" type="number" min="1" max="100" value="100" required>`,f=>{let s=subject(+f.get('subject'));s.grades.push({id:Date.now(),title:f.get('title'),grade:+f.get('grade'),term:+f.get('term'),weight:+f.get('weight')});save()})}
+function renderGrades(){let list=data.subjects;$('#gradeList').innerHTML=list.map(s=>{let gs=s.grades.filter(g=>currentTerm==='all'||g.term===+currentTerm);let avg=subjectAverage(s,currentTerm);return `<div class="card"><div class="sectiontitle"><div class="row"><span class="swatch" style="background:${s.color}"></span><b>${esc(s.name)}</b></div><div class="row"><span class="muted">${avg===null?'Sin notas':'Media '+avg.toFixed(2)}</span><button class="btn" onclick="gradeDialog(${s.id})">＋ Nota</button></div></div>${gs.map(g=>`<div class="gradebox"><div class="row between"><b>${esc(g.title)}</b><b>${g.grade.toString().replace('.',',')}</b></div><div class="muted small">Peso ${g.weight}% · ${g.term}.º trimestre</div><div class="row" style="justify-content:flex-end"><button class="btn danger" onclick="deleteGrade(${s.id},${g.id})">Borrar</button></div></div>`).join('')||'<p class="muted">Todavía no hay notas en este apartado.</p>'}</div>`}).join('')}
+function deleteGrade(sid,gid){let s=subject(sid);s.grades=s.grades.filter(g=>g.id!==gid);save()}
+$('#termButtons').addEventListener('click',e=>{let b=e.target.closest('button[data-term]');if(!b)return;currentTerm=b.dataset.term;$$('#termButtons button').forEach(x=>x.classList.toggle('primary',x===b));renderGrades()});
+function habitDialog(id){let h=data.habits.find(x=>x.id===id)||{};openDlg(id?'Editar hábito':'Añadir hábito o entreno',`<label>Tipo</label><select name="type" class="field"><option ${h.type!=='Entreno'?'selected':''}>Hábito</option><option ${h.type==='Entreno'?'selected':''}>Entreno</option></select><label>Nombre</label><input class="field" name="name" required value="${esc(h.name||'')}"><label>Días de la semana</label><div class="row">${['L','M','X','J','V','S','D'].map((d,i)=>`<label><input type="checkbox" name="day" value="${i}" ${(h.days||[]).includes(i)?'checked':''}>${d}</label>`).join('')}</div><label>Hora (opcional)</label><input class="field" name="time" type="time" value="${h.time||''}">`,f=>{let obj={id:h.id||Date.now(),type:f.get('type'),name:f.get('name'),days:f.getAll('day').map(Number),time:f.get('time')};if(h.id)data.habits=data.habits.map(x=>x.id===h.id?obj:x);else data.habits.push(obj);save()})}
+function renderHabits(){let names=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];$('#habitList').innerHTML=data.habits.map(h=>`<div class="listitem"><div style="flex:1"><b>${esc(h.name)}</b><div class="muted small">${h.type} · ${h.days.map(d=>names[(d+0)%7].slice(0,3)).join(', ')} ${h.time?'· '+h.time:''}</div></div><button class="btn" onclick="habitDialog(${h.id})">Editar</button><button class="btn danger" onclick="deleteHabit(${h.id})">×</button></div>`).join('')||'<p class="muted">Todavía no has añadido hábitos.</p>'}
+function deleteHabit(id){data.habits=data.habits.filter(h=>h.id!==id);save()}
+function dueToday(h){return h.days.includes(new Date().getDay())}
+function renderToday(){
+ let today=todayISO();$('#todayDateTitle').textContent=fmt(today);
+ let ev=data.events.filter(e=>e.date===today);$('#todayEvents').innerHTML=ev.length?ev.map(e=>`<div class="listitem"><b>${esc(e.type)}</b><span>${esc(subject(e.subject)?.name||'')} · ${esc(e.title)}</span></div>`).join(''):'<p class="muted">No tienes exámenes ni entregas hoy.</p>';
+ let limit=new Date(today+'T00:00:00');limit.setDate(limit.getDate()+7);let limitISO=limit.getFullYear()+'-'+String(limit.getMonth()+1).padStart(2,'0')+'-'+String(limit.getDate()).padStart(2,'0');
+ let upcoming=data.events.filter(e=>e.date>today&&e.date<=limitISO).sort((a,b)=>a.date.localeCompare(b.date));
+ $('#upcomingEvents').innerHTML=upcoming.length?upcoming.map(e=>{let d=days(e.date);return `<div class="listitem"><div class="count">${d}<small>DÍAS</small></div><div style="flex:1"><b>${esc(e.type)}</b> · ${esc(subject(e.subject)?.name||'')}<div>${esc(e.title)} · ${fmt(e.date)}</div></div></div>`}).join(''):'<p class="muted">No tienes exámenes ni entregas en los próximos siete días.</p>';
+ let hs=data.habits.filter(dueToday),done=data.checks[today]||[];$('#habitTodayCount').textContent=done.length+' de '+hs.length;$('#todayHabits').innerHTML=hs.length?hs.map(h=>`<div class="listitem"><input type="checkbox" ${done.includes(h.id)?'checked':''} onchange="toggleHabit(${h.id},this.checked)"><div style="flex:1"><b>${esc(h.name)}</b><div class="muted small">${h.type}${h.time?' · '+h.time:''}</div></div></div>`).join(''):'<p class="muted">No tienes hábitos programados para hoy.</p>';
+}
+function toggleHabit(id,on){let a=data.checks[todayISO()]||[];data.checks[todayISO()]=on?[...new Set([...a,id])]:a.filter(x=>x!==id);save()}
+function searchPrompt(){let q=prompt('¿Qué quieres buscar?');if(!q)return;let match=data.subjects.find(s=>s.name.toLowerCase().includes(q.toLowerCase()));if(match){setTab('temario');document.getElementById('sub'+match.id)?.classList.add('open')}else alert('No he encontrado esa asignatura.')}
+function render(){document.body.classList.toggle('dark',data.theme==='dark');renderHome();$('#fullSchedule').innerHTML=renderSchedule();renderEvents();renderSubjects();renderGrades();renderHabits();renderToday()}
+render();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+</script>
+</body></html>
