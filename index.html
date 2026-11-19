@@ -115,7 +115,7 @@ dialog::backdrop{background:#1119}.dialogactions{display:flex;gap:8px;justify-co
 <div class="bottomspace"></div>
 </div>
 <div class="stickyAction" id="stickyAction"><button onclick="quickAdd()">＋ Añadir al horario</button></div>
-<dialog id="dlg"><form id="dlgForm"><h2 id="dlgTitle">Añadir</h2><div id="dlgBody"></div><div class="dialogactions"><button class="btn" type="button" onclick="closeDlg()">Cancelar</button><button class="btn primary" id="dlgSave" type="submit" onclick="submitDlg(event)">Guardar</button></div></form></dialog>
+<dialog id="dlg"><form id="dlgForm"><h2 id="dlgTitle">Añadir</h2><div id="dlgBody"></div><div class="dialogactions"><button class="btn" type="button" onclick="closeDlg()">Cancelar</button><button class="btn primary" id="dlgSave" type="button" onclick="submitDlg()">Guardar</button></div></form></dialog>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -154,8 +154,7 @@ async function pushCloudData(){if(!authUser||!cloudReady||applyingCloud)return;t
 function save(){localStorage.setItem('kaosDataV2',JSON.stringify(data));render();pushCloudData();}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function openDlg(title,body,action){$('#dlgTitle').textContent=title;$('#dlgBody').innerHTML=body;dlgAction=action;$('#dlg').showModal()}
-function submitDlg(e){e.preventDefault();const form=$('#dlgForm');if(!form.reportValidity())return;if(typeof dlgAction!=='function'){alert('No se ha podido abrir el formulario correctamente. Ciérralo y vuelve a intentarlo.');return;}try{const action=dlgAction;action(new FormData(form));dlgAction=null;$('#dlg').close()}catch(error){console.error('Error al guardar en KAOS:',error);alert('No se ha podido guardar. Revisa los datos e inténtalo de nuevo.')}}
-$('#dlgForm').addEventListener('submit',submitDlg);
+function submitDlg(){const form=$('#dlgForm');const invalid=form.querySelector(':invalid');if(invalid){alert('Revisa este campo: '+(invalid.name||invalid.type)+' ('+invalid.validationMessage+')');invalid.focus();return;}if(typeof dlgAction!=='function'){alert('No se ha encontrado la acción de guardado. Cierra la ventana y vuelve a abrirla.');return;}try{const action=dlgAction;action(new FormData(form));dlgAction=null;$('#dlg').close()}catch(error){console.error('Error al guardar en KAOS:',error);alert('Error al guardar: '+(error.message||error))}}
 function closeDlg(){$('#dlg').close();dlgAction=null}
 function todayISO(){let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fmt(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}
