@@ -64,6 +64,7 @@ label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
 .weekaxis span{grid-column:span 1;text-align:center;white-space:nowrap}
 .weekaxis .axislabel{grid-column:1;text-align:left}
 .weekdayrow{margin:7px 0;min-height:27px}
+.weekdayrow{position:relative}.weekdayrow.todayrow::after{content:'';position:absolute;top:-3px;bottom:-3px;left:calc(42px + (100% - 42px)*var(--time-progress));width:2px;background:var(--time-marker);border-radius:2px;z-index:4;pointer-events:none}body.dark{--time-marker:#fff}body:not(.dark){--time-marker:#315f3b}@media(max-width:480px){.weekdayrow.todayrow::after{left:calc(34px + (100% - 34px)*var(--time-progress))}}
 .weekdayname{font-size:11px;font-weight:750;white-space:nowrap}
 .weekdayname .examDot{display:inline-block;color:#c84b42;margin-left:2px;font-size:13px}
 .weekcell{height:23px;min-width:0;border-radius:2px;background:var(--green2);border:1px solid var(--line)}
@@ -222,7 +223,8 @@ function renderOverview(){
    else if(item.type==='sport')cells+=`<span class="weekcell sportcell" title="${esc(item.title)}"></span>`;
    else cells+=`<span class="weekcell habitcell" title="${esc(item.title)}"></span>`;
   }
-  html+=`<div class="weekdayrow"><div class="weekdayname">${name}${hasExam?'<span class="examDot">●</span>':''}</div>${cells}</div>`;
+  const now=new Date(),isToday=now.getDay()===i+1,minutes=now.getHours()*60+now.getMinutes(),progress=Math.max(0,Math.min(1,(minutes-480)/840));
+  html+=`<div class="weekdayrow ${isToday&&minutes>=480&&minutes<=1320?'todayrow':''}" ${isToday?'style="--time-progress:'+progress+'"':''}><div class="weekdayname">${name}${hasExam?'<span class="examDot">●</span>':''}</div>${cells}</div>`;
   if(labels.length)html+=`<div class="weekactivitylabels">${labels.map(x=>`<span>${x}</span>`).join('')}</div>`;
  });
  html+='<div class="weeklegend"><span class="legenditem"><i class="legendchip" style="background:var(--green)"></i> Clase (color de asignatura)</span><span class="legenditem"><i class="legendchip" style="background:#e99a43"></i> Entreno</span><span class="legenditem"><i class="legendchip" style="background:#7eaa9a"></i> Hábito</span><span class="legenditem"><i class="legendchip" style="background:#c84b42;border-radius:50%"></i> Día con examen</span></div></div>';
@@ -287,6 +289,7 @@ function toggleHabit(id,on){let a=data.checks[todayISO()]||[];data.checks[todayI
 function searchPrompt(){let q=prompt('¿Qué quieres buscar?');if(!q)return;let match=data.subjects.find(s=>s.name.toLowerCase().includes(q.toLowerCase()));if(match){setTab('temario');document.getElementById('sub'+match.id)?.classList.add('open')}else alert('No he encontrado esa asignatura.')}
 function render(){document.body.classList.toggle('dark',data.theme==='dark');renderHome();$('#fullSchedule').innerHTML=renderSchedule();renderEvents();renderSubjects();renderGrades();renderHabits();renderToday()}
 render();
+setInterval(()=>renderOverview(),60000);
 if(firebaseConfigured){
  auth.onAuthStateChanged(async user=>{
   authUser=user;cloudReady=false;
