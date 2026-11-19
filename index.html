@@ -57,14 +57,24 @@ label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
 .topic{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
 .gradebox{border:1px solid var(--line);padding:12px;margin:9px 0}
 .bottomspace{height:14px}
-.weekdays{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:10px;overflow-x:auto;padding:2px 2px 8px}
-.weekdaycard{border:1px solid var(--line);background:var(--panel);padding:10px;min-width:150px}
-.weekdaycard h3{margin:0 0 8px;font-size:14px}
-.weekslot{display:flex;justify-content:space-between;gap:6px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
-.weekslot:last-child{border-bottom:0}
-.weekactivity{margin-top:8px;padding:7px;background:var(--green2);border-radius:4px;font-size:12px}
-.weekfree{font-size:11px;color:var(--muted);margin-top:8px}.examDot{color:#c84b42;font-size:13px;margin-left:4px}
-@media(max-width:700px){.weekdays{grid-template-columns:repeat(5,minmax(145px,1fr))}}
+.weektimeline{width:100%;min-width:0}
+.weekaxis,.weekdayrow{display:grid;grid-template-columns:42px repeat(28,minmax(0,1fr));gap:2px;align-items:center}
+.weekaxis{margin:2px 0 7px;color:var(--muted);font-size:10px}
+.weekaxis span{grid-column:span 1;text-align:center;white-space:nowrap}
+.weekaxis .axislabel{grid-column:1;text-align:left}
+.weekdayrow{margin:7px 0;min-height:27px}
+.weekdayname{font-size:11px;font-weight:750;white-space:nowrap}
+.weekdayname .examDot{display:inline-block;color:#c84b42;margin-left:2px;font-size:13px}
+.weekcell{height:23px;min-width:0;border-radius:2px;background:var(--green2);border:1px solid var(--line)}
+.weekcell.classcell{border-color:transparent}
+.weekcell.sportcell{background:#e99a43;border-color:#d27d26}
+.weekcell.habitcell{background:#7eaa9a;border-color:#628e7e}
+.weeklegend{display:flex;flex-wrap:wrap;gap:14px;margin-top:17px;font-size:12px;color:var(--muted)}
+.legenditem{display:flex;align-items:center;gap:6px}
+.legendchip{width:13px;height:13px;border-radius:3px;border:1px solid #24352b55;display:inline-block}
+.weekactivitylabels{margin:3px 0 7px 44px;font-size:10px;color:var(--muted)}
+.weekactivitylabels span{margin-right:9px}
+@media(max-width:480px){.weekaxis,.weekdayrow{grid-template-columns:34px repeat(28,minmax(0,1fr));gap:1px}.weekcell{height:20px;border-radius:1px}.weekaxis{font-size:9px}.weekdayname{font-size:10px}.weeklegend{gap:9px;font-size:11px}.weekactivitylabels{margin-left:35px}}
 dialog{border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);width:min(520px,calc(100% - 24px));padding:20px;box-shadow:8px 8px 0 #24352b30}
 dialog::backdrop{background:#1119}.dialogactions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 @media(min-width:760px){.widgets{grid-template-columns:repeat(2,minmax(0,1fr))}.widget{min-height:165px;padding:24px}.card{padding:22px}.schedule{min-width:0}.lesson{height:42px}}
@@ -79,7 +89,7 @@ dialog::backdrop{background:#1119}.dialogactions{display:flex;gap:8px;justify-co
  <div class="widget"><div class="sectiontitle"><strong>Fin de curso</strong><button onclick="changeEnd()">cambiar</button></div><div class="big" id="countdown">-- días</div><div class="muted" id="endLabel"></div></div>
  <div class="widget"><div class="sectiontitle"><strong>Tu media</strong><button onclick="changeTarget()">objetivo</button></div><div class="big"><span id="average">—</span> / <span id="target">9</span></div><div class="muted" id="averageHint">Añade tus notas para calcular la media</div></div>
 </div>
-<div class="card"><div class="sectiontitle"><h2>La semana entera</h2><span class="muted" id="freeHours"></span></div><div id="weekOverview"></div></div>
+<div class="card"><div class="sectiontitle"><h2>La semana entera</h2><span class="muted" id="freeHours"></span></div><div id="weekOverview"></div><p class="small muted">Vista de 8:00 a 22:00. Cada cuadradito representa media hora; las clases usan el color de su asignatura.</p></div>
 <nav id="tabs">
 <button class="active" data-tab="hoy">◷<br>Hoy</button><button data-tab="semana">▦<br>Semana</button><button data-tab="fechas">☆<br>Fechas</button><button data-tab="temario">▣<br>Temario</button><button data-tab="notas">▤<br>Notas</button><button data-tab="habitos">♧<br>Hábitos</button>
 </nav>
@@ -121,30 +131,63 @@ function calcAverage(){let vals=data.subjects.map(s=>subjectAverage(s)).filter(v
 function renderHome(){let sub=$('#subtitleText');if(sub)sub.textContent=data.subtitle||'Organiza tu curso';let d=days(data.end);$('#countdown').textContent=(d>=0?d:0)+' días';$('#endLabel').textContent=fmt(data.end);$('#target').textContent=data.target;let a=calcAverage();$('#average').textContent=a===null?'—':a.toFixed(2).replace('.',',');$('#averageHint').textContent=a===null?'Añade tus notas para calcular la media':a>=data.target?'¡Has alcanzado tu objetivo!':`Te faltan ${(data.target-a).toFixed(2)} puntos para tu objetivo`;let streak=streakCount();$('#streakTitle').textContent=streak>0?'Racha activada':'Racha sin activar';$('#streakCount').textContent=streak+' días';renderOverview()}
 function streakCount(){let n=0,d=new Date();if(!(data.checks[todayISO()]||[]).length)d.setDate(d.getDate()-1);for(let i=0;i<365;i++){let key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if((data.checks[key]||[]).length)n++;else break;d.setDate(d.getDate()-1)}return n}
 function renderOverview(){
- let names=['Lunes','Martes','Miércoles','Jueves','Viernes'];
- let today=new Date();let monday=new Date(today);let offset=(today.getDay()+6)%7;monday.setDate(today.getDate()-offset);
- let html='<div class="weekdays">';let free=0;
- names.forEach((name,i)=>{
-  let date=new Date(monday);date.setDate(monday.getDate()+i);let iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
-  let slots='';let empty=0;
-  for(let p=1;p<=7;p++){
-   if(p===7&&i>=2){slots+=`<div class="weekslot"><span>7.ª hora</span><span class="muted">Libre</span></div>`;empty++;continue}
-   let item=data.schedule[i+'-'+p];if(item){slots+=`<div class="weekslot"><span>${p}.ª hora</span><b style="color:${textColor(item.color)};background:${item.color};padding:2px 5px;border-radius:3px">${esc(item.name)}</b></div>`}else{slots+=`<div class="weekslot"><span>${p}.ª hora</span><span class="muted">Libre</span></div>`;empty++}
-  }
-  free+=empty;
-  let acts=data.habits.filter(h=>(h.days||[]).includes((i+1)%7));
-  let actHtml=acts.length?acts.map(h=>`<div class="weekactivity">${h.time?esc(h.time)+' · ':''}<b>${esc(h.name)}</b><br><span class="muted">${esc(h.type)}</span></div>`).join(''):'<div class="weekfree">Sin actividades programadas por la tarde</div>';
-  let ev=data.events.filter(e=>e.date===iso);let eventHtml=ev.length?`<div class="weekactivity">${ev.map(e=>`<b>${esc(e.type)}:</b> ${esc(e.title)}`).join('<br>')}</div>`:'';
-  let hasExam=data.events.some(e=>e.date===iso&&e.type==='Examen');
-  html+=`<div class="weekdaycard"><h3>${name} <span class="muted">${date.getDate()}/${date.getMonth()+1}</span>${hasExam?'<span class="examDot">●</span>':''}</h3>${slots}<div class="weekfree">${empty} huecos libres en el horario</div>${actHtml}${eventHtml}</div>`;
- });
+ const names=['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
+ const periods={1:0,2:2,3:4,4:7,5:9,6:11,7:13};
+ const monday=new Date();monday.setDate(monday.getDate()-((monday.getDay()+6)%7));
+ let html='<div class="weektimeline"><div class="weekaxis"><span class="axislabel"></span>';
+ const axis=[['8',0],['11',6],['14',12],['17',18],['20',24],['22',28]];
+ let last=0;
+ axis.forEach(([label,pos])=>{const span=Math.max(1,pos-last);html+=`<span style="grid-column:${last+2}/span ${span}">${label}</span>`;last=pos});
  html+='</div>';
+ let freeCells=0,totalCells=0;
+ names.forEach((name,i)=>{
+  const date=new Date(monday);date.setDate(monday.getDate()+i);
+  const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  const jsDay=(i+1)%7;
+  const hasExam=data.events.some(e=>e.date===iso&&e.type==='Examen');
+  const occupied=new Map();
+  if(i<5){
+   for(let p=1;p<=7;p++){
+    if(p===7&&i>=2)continue;
+    const item=data.schedule[i+'-'+p];if(!item)continue;
+    const start=periods[p];
+    const linked=(item.subjectId?subject(item.subjectId):data.subjects.find(x=>x.name===item.name));
+    const color=linked?.color||item.color||'#a9c9ad';
+    for(let c=start;c<Math.min(start+2,28);c++)occupied.set(c,{type:'class',color,title:item.name});
+   }
+  }
+  const acts=data.habits.filter(h=>(h.days||[]).includes(jsDay));
+  const labels=[];
+  acts.forEach(h=>{
+   if(h.time){
+    const parts=h.time.split(':').map(Number),cell=Math.floor(((parts[0]*60+parts[1])-480)/30);
+    if(cell>=0&&cell<28){
+     const type=h.type==='Entreno'?'sport':'habit';
+     for(let c=cell;c<Math.min(cell+2,28);c++)if(!occupied.has(c))occupied.set(c,{type,title:h.name});
+    }
+    labels.push(`${esc(h.time)} ${esc(h.name)}`);
+   }else labels.push(`${esc(h.name)} (sin hora)`);
+  });
+  let cells='';
+  for(let c=0;c<28;c++){
+   const item=occupied.get(c);
+   if(!item){cells+='<span class="weekcell"></span>';freeCells++;totalCells++;continue}
+   totalCells++;
+   if(item.type==='class')cells+=`<span class="weekcell classcell" title="${esc(item.title)}" style="background:${item.color};border-color:${item.color}"></span>`;
+   else if(item.type==='sport')cells+=`<span class="weekcell sportcell" title="${esc(item.title)}"></span>`;
+   else cells+=`<span class="weekcell habitcell" title="${esc(item.title)}"></span>`;
+  }
+  html+=`<div class="weekdayrow"><div class="weekdayname">${name}${hasExam?'<span class="examDot">●</span>':''}</div>${cells}</div>`;
+  if(labels.length)html+=`<div class="weekactivitylabels">${labels.map(x=>`<span>${x}</span>`).join('')}</div>`;
+ });
+ html+='<div class="weeklegend"><span class="legenditem"><i class="legendchip" style="background:var(--green)"></i> Clase (color de asignatura)</span><span class="legenditem"><i class="legendchip" style="background:#e99a43"></i> Entreno</span><span class="legenditem"><i class="legendchip" style="background:#7eaa9a"></i> Hábito</span><span class="legenditem"><i class="legendchip" style="background:#c84b42;border-radius:50%"></i> Día con examen</span></div></div>';
  $('#weekOverview').innerHTML=html;
- $('#freeHours').textContent=free+' huecos libres en la semana';
+ const freeHours=(freeCells/2).toFixed(1).replace('.0','').replace('.',',');
+ $('#freeHours').textContent=freeHours+' h libres';
 }
 function textColor(hex){let c=hex.replace('#','');if(c.length!==6)return '#24352b';let r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);return (r*.299+g*.587+b*.114)<145?'#fff':'#24352b'}
 function renderSchedule(){let names=['Lunes','Martes','Miércoles','Jueves','Viernes'];let now=new Date(),monday=new Date(now);monday.setDate(now.getDate()-((now.getDay()+6)%7));let h='<table class="schedule"><tr><th>Hora</th>'+names.map((n,i)=>{let d=new Date(monday);d.setDate(monday.getDate()+i);let iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');let dot=data.events.some(e=>e.date===iso&&e.type==='Examen')?'<span class="examDot">●</span>':'';return `<th>${n.slice(0,3).toUpperCase()} ${dot}</th>`}).join('')+'</tr>';for(let p=1;p<=7;p++){if(p===4)h+=`<tr><td class="time">Recreo</td>`+names.map(()=>'<td class="recess">25 min</td>').join('')+'</tr>';if(p===7)h+=`<tr><td class="time">Recreo</td>`+names.map((_,i)=>i<2?'<td class="recess">15 min</td>':'<td class="muted small">Fin</td>').join('')+'</tr>';h+=`<tr><td class="time">${p}ª</td>`+names.map((n,i)=>{let v=data.schedule[i+'-'+p];return `<td>${p===7&&i>=2?'<span class="recess emptySlot">Libre</span>':v?`<button class="lesson" style="background:${v.color};color:${textColor(v.color)}" onclick="scheduleDialog('${i}-${p}')">${esc(v.name)}</button>`:`<button class="empty" onclick="scheduleDialog('${i}-${p}')">＋</button>`}</td>`}).join('')+'</tr>'}return h+'</table>'}
-function scheduleDialog(key){let day=key?+key.split('-')[0]:0,period=key?+key.split('-')[1]:1,old=data.schedule[key]||{};openDlg('Casilla del horario',`<label>Día</label><select name="day">${['Lunes','Martes','Miércoles','Jueves','Viernes'].map((n,i)=>`<option value="${i}" ${i===day?'selected':''}>${n}</option>`)}</select><label>Hora de clase</label><select name="period">${Array.from({length:7},(_,i)=>`<option value="${i+1}" ${i+1===period?'selected':''}>${i+1}ª hora</option>`).join('')}</select><label>Asignatura</label><select name="subject"><option value="">Otra actividad / libre</option>${subjectOptions()}</select><label>Nombre (si no es asignatura)</label><input class="field" name="name" value="${esc(old.name||'')}"><label>Color</label><input name="color" type="color" value="${old.color||'#a9c9ad'}">`,f=>{let k=f.get('day')+'-'+f.get('period'),s=subject(f.get('subject'));let name=s?.name||f.get('name');if(name)data.schedule[k]={name,color:s?.color||f.get('color')};else delete data.schedule[k];save()})}
+function scheduleDialog(key){let day=key?+key.split('-')[0]:0,period=key?+key.split('-')[1]:1,old=data.schedule[key]||{};let oldSubject=old.subjectId||data.subjects.find(x=>x.name===old.name)?.id||'';openDlg('Casilla del horario',`<label>Día</label><select name="day">${['Lunes','Martes','Miércoles','Jueves','Viernes'].map((n,i)=>`<option value="${i}" ${i===day?'selected':''}>${n}</option>`)}</select><label>Hora de clase</label><select name="period">${Array.from({length:7},(_,i)=>`<option value="${i+1}" ${i+1===period?'selected':''}>${i+1}ª hora</option>`).join('')}</select><label>Asignatura</label><select name="subject"><option value="">Otra actividad / libre</option>${subjectOptions(oldSubject)}</select><label>Nombre (si no es asignatura)</label><input class="field" name="name" value="${esc(old.name||'')}"><label>Color</label><input name="color" type="color" value="${old.color||'#a9c9ad'}">`,f=>{let k=f.get('day')+'-'+f.get('period'),s=subject(f.get('subject'));let name=s?.name||f.get('name');if(name)data.schedule[k]={name,color:s?.color||f.get('color'),subjectId:s?.id||null};else delete data.schedule[k];save()})}
 function eventDialog(id){if(!data.subjects.length){alert('Añade primero una asignatura en Temario.');return}let e=data.events.find(x=>x.id===id)||{};openDlg(id?'Editar fecha':'Apuntar examen o entrega',`<label>Tipo</label><div class="row"><label><input type="radio" name="type" value="Examen" ${!e.type||e.type==='Examen'?'checked':''}> Examen</label><label><input type="radio" name="type" value="Entrega" ${e.type==='Entrega'?'checked':''}> Entrega</label></div><label>Asignatura</label><select class="field" name="subject" required>${subjectOptions(e.subject)}</select><label>¿Sobre qué?</label><input class="field" name="title" required value="${esc(e.title||'')}" placeholder="Ej. Tema 1"><label>Fecha</label><input class="field" type="date" name="date" required value="${e.date||todayISO()}">`,f=>{let s=subject(f.get('subject'));let item={id:e.id||Date.now(),type:f.get('type'),subject:f.get('subject'),title:f.get('title'),date:f.get('date')};if(e.id)data.events=data.events.map(x=>x.id===e.id?item:x);else data.events.push(item);save()})}
 function renderEvents(){let ev=data.events.filter(e=>e.date>=todayISO()).sort((a,b)=>a.date.localeCompare(b.date));$('#eventCount').textContent=ev.length+' por delante';$('#eventList').innerHTML=ev.length?ev.map(e=>{let s=subject(e.subject),d=days(e.date);return `<div class="listitem"><div class="count">${d===0?'HOY':d}<small>${d===0?'':'DÍAS'}</small></div><div style="flex:1"><div><span class="swatch" style="background:${s?.color||'#a9c9ad'}"></span> <b>${e.type}</b> · ${esc(s?.name||'')}</div><div>${esc(e.title)} · ${fmt(e.date)}</div></div><button class="iconbtn" onclick="eventDialog(${e.id})">▣</button><button class="iconbtn" onclick="deleteEvent(${e.id})">×</button></div>`}).join(''):'<p class="muted">No tienes fechas apuntadas.</p>'}
 function deleteEvent(id){if(confirm('¿Borrar esta fecha?')){data.events=data.events.filter(x=>x.id!==id);save()}}
