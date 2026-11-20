@@ -21,8 +21,8 @@ h1{font-family:Georgia,serif;font-size:clamp(34px,7vw,58px);line-height:1.03;mar
 h1 em{font-weight:400}
 .card{background:var(--panel);border:1.5px solid var(--ink);box-shadow:var(--shadow);padding:17px;border-radius:3px;margin:14px 0}
 .card h2,.card h3{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:12px}
-.streak{display:flex;align-items:center;gap:10px;background:var(--green2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:12px 0 18px;color:var(--ink);max-width:450px}
-.flame{color:#4c8a5c;font-size:22px}.streak strong{font-size:15px}.streak span:last-child{margin-left:auto;font-weight:750}
+.streak{display:flex;align-items:center;gap:10px;background:var(--green2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:12px 0 18px;color:var(--ink);max-width:450px}.streak.inactive{background:#eeeeee;border-color:#d0d0d0;color:#777}.streak.inactive .flame{color:#999}.streak.active .flame{color:var(--accent)}
+.flame{color:var(--accent);font-size:22px}.streak strong{font-size:15px}.streak span:last-child{margin-left:auto;font-weight:750}
 .widgets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .widget{background:var(--green2);border:1.5px solid var(--ink);box-shadow:var(--shadow);padding:17px;min-height:135px}
 .widget .big{font-size:clamp(28px,5vw,42px);font-weight:800;line-height:1.1;margin:9px 0}
@@ -45,7 +45,7 @@ label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
 .schedule th,.schedule td{border:1px solid var(--line);padding:4px;text-align:center;height:48px}
 .schedule th{font-size:12px;color:var(--muted)}.schedule .time{width:58px;font-size:11px}
 .lesson{border:0;border-radius:3px;width:100%;height:36px;font-weight:700;font-size:12px;overflow:hidden}
-.recess{height:20px!important;background:repeating-linear-gradient(135deg,#dce5dc,#dce5dc 5px,#f7faf6 5px,#f7faf6 10px);color:#627367;font-size:11px}.schedule .emptySlot{display:flex;height:36px!important;min-height:36px;box-sizing:border-box;width:100%;padding:0;align-items:center;justify-content:center}
+.recess{height:20px!important;background:repeating-linear-gradient(135deg,var(--line),var(--line) 5px,var(--panel) 5px,var(--panel) 10px);color:var(--muted);font-size:11px}.schedule .emptySlot{display:flex;height:36px!important;min-height:36px;box-sizing:border-box;width:100%;padding:0;align-items:center;justify-content:center}
 .empty{color:var(--muted);background:transparent;border:1px dashed var(--line);width:100%;height:36px}
 .listitem{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
 .count{border:1px solid var(--ink);min-width:62px;text-align:center;padding:7px;font-weight:800;background:var(--panel)}
@@ -61,11 +61,11 @@ label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
 .bottomspace{height:14px}
 .weektimeline{width:100%;min-width:0}
 .weekaxis,.weekdayrow{display:grid;grid-template-columns:42px repeat(28,minmax(0,1fr));gap:2px;align-items:center}
-.weekaxis{margin:2px 0 7px;color:var(--muted);font-size:10px}
-.weekaxis span{grid-column:span 1;text-align:center;white-space:nowrap}
+.weekaxis{margin:2px 0 7px;color:var(--muted);font-size:10px;min-height:18px;align-items:center;line-height:1.2}
+.weekaxis span{grid-column:span 1;text-align:center;white-space:nowrap;align-self:center;line-height:1.2}
 .weekaxis .axislabel{grid-column:1;text-align:left}
 .weekdayrow{margin:7px 0;min-height:27px}
-.weekdayrow{position:relative}.weekdayrow.todayrow::after{content:'';position:absolute;top:-3px;bottom:-3px;left:calc(42px + (100% - 42px)*var(--time-progress));width:2px;background:var(--time-marker);border-radius:2px;z-index:4;pointer-events:none}body.dark{--time-marker:#fff}body:not(.dark){--time-marker:#315f3b}@media(max-width:480px){.weekdayrow.todayrow::after{left:calc(34px + (100% - 34px)*var(--time-progress))}}
+.weekdayrow{position:relative}.weekdayrow.todayrow::after{content:'';position:absolute;top:-3px;bottom:-3px;left:calc(42px + (100% - 42px)*var(--time-progress));width:2px;background:var(--time-marker);border-radius:2px;z-index:4;pointer-events:none}@media(max-width:480px){.weekdayrow.todayrow::after{left:calc(34px + (100% - 34px)*var(--time-progress))}}
 .weekdayname{font-size:11px;font-weight:750;white-space:nowrap}
 .weekdayname .examDot{display:inline-block;color:#c84b42;margin-left:2px;font-size:13px}
 .weekcell{height:23px;min-width:0;border-radius:2px;background:var(--green2);border:1px solid var(--line)}
@@ -74,7 +74,7 @@ label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
 .weekcell.habitcell{background:#7eaa9a;border-color:#628e7e}
 .weeklegend{display:flex;flex-wrap:wrap;gap:14px;margin-top:17px;font-size:12px;color:var(--muted)}
 .legenditem{display:flex;align-items:center;gap:6px}
-.legendchip{width:13px;height:13px;border-radius:3px;border:1px solid #24352b55;display:inline-block}
+.legendchip{width:13px;height:13px;border-radius:3px;border:1px solid color-mix(in srgb,var(--ink) 35%,transparent);display:inline-block}
 .weekactivitylabels{margin:3px 0 7px 44px;font-size:10px;color:var(--muted)}
 .weekactivitylabels span{margin-right:9px}
 @media(max-width:480px){.weekaxis,.weekdayrow{grid-template-columns:34px repeat(28,minmax(0,1fr));gap:1px}.weekcell{height:20px;border-radius:1px}.weekaxis{font-size:9px}.weekdayname{font-size:10px}.weeklegend{gap:9px;font-size:11px}.weekactivitylabels{margin-left:35px}}
@@ -102,7 +102,7 @@ dialog.mediaDialog{width:100vw;height:100dvh;max-width:none;max-height:none;marg
 <div class="app" id="mainApp">
 <header><div><div class="kicker">CURSO 2026/2027 · 4.º ESO</div><h1>KAOS<br><em id="subtitleText">Organiza tu curso</em></h1><button class="editSubtitle" onclick="editSubtitle()">Editar texto</button></div><div class="topicons"><button class="iconbtn" onclick="toggleTheme()" aria-label="Colores de la aplicación">⚙</button></div></header>
 <div class="accountbar"><span id="accountEmail"></span><button class="btn" type="button" onclick="logoutKAOS()">Cerrar sesión</button><span id="syncStatus">Sincronización pendiente</span></div>
-<div class="streak"><span class="flame">♨</span><strong id="streakTitle">Racha sin activar</strong><span id="streakCount">0 días</span></div>
+<div class="streak inactive" id="streakCard"><span class="flame">♨</span><strong id="streakTitle">Racha sin activar</strong><span id="streakCount">0 días</span></div>
 <div class="widgets">
  <div class="widget"><div class="sectiontitle"><strong>Fin de curso</strong><button onclick="changeEnd()">cambiar</button></div><div class="big" id="countdown">-- días</div><div class="muted" id="endLabel"></div></div>
  <div class="widget"><div class="sectiontitle"><strong>Tu media</strong><div class="row"><button onclick="changeTarget()">objetivo</button><button onclick="openMedia()" aria-label="Ver seguimiento de medias">＋</button></div></div><div class="big"><span id="average">—</span> / <span id="target">9</span></div><div class="muted" id="averageHint">Añade tus notas para calcular la media</div><div class="small muted">Pulsa ＋ para ver tus medias por asignatura</div></div>
@@ -181,7 +181,7 @@ const themePalettes={
 };
 function applyPalette(){
  const p=themePalettes[data.palette]||themePalettes.green,v=p[data.theme==='dark'?'dark':'light'];
- ['--bg','--panel','--ink','--muted','--line','--green','--green2'].forEach((k,i)=>document.body.style.setProperty(k,v[i]));
+ ['--bg','--panel','--ink','--muted','--line','--green','--green2'].forEach((k,i)=>document.body.style.setProperty(k,v[i]));document.body.style.setProperty('--accent',v[5]);document.body.style.setProperty('--time-marker',v[5]);
 }
 function toggleTheme(){openThemeMenu()}
 function closeThemeMenu(){$('#themeDlg').close()}
@@ -201,7 +201,7 @@ function changeEnd(){openDlg('Fin de curso',`<label>Fecha de fin de curso</label
 function changeTarget(){openDlg('Nota objetivo',`<label>Media que quieres conseguir</label><input class="field" name="target" type="number" min="0" max="10" step=".1" value="${data.target}">`,f=>{data.target=+f.get('target');save()})}
 function subjectAverage(s,term='all'){let gs=s.grades||[];if(term!=='all'){let a=gs.filter(g=>g.term===+term),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null}let means=[1,2,3].map(t=>{let a=gs.filter(g=>g.term===t),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null});let weights=s.terms||[33,33,34],usable=means.map((v,i)=>v===null?0:weights[i]),total=usable.reduce((a,b)=>a+b,0);return total?means.reduce((a,v,i)=>a+(v===null?0:v*usable[i]),0)/total:null}
 function calcAverage(){let vals=data.subjects.map(s=>subjectAverage(s)).filter(v=>v!==null);return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null}
-function renderHome(){let sub=$('#subtitleText');if(sub)sub.textContent=data.subtitle||'Organiza tu curso';let d=days(data.end);$('#countdown').textContent=(d>=0?d:0)+' días';$('#endLabel').textContent=fmt(data.end);$('#target').textContent=data.target;let a=calcAverage();$('#average').textContent=a===null?'—':a.toFixed(2).replace('.',',');$('#averageHint').textContent=a===null?'Añade tus notas para calcular la media':a>=data.target?'¡Has alcanzado tu objetivo!':`Te faltan ${(data.target-a).toFixed(2)} puntos para tu objetivo`;let streak=streakCount();$('#streakTitle').textContent=streak>0?'Racha activada':'Racha sin activar';$('#streakCount').textContent=streak+' días';renderOverview()}
+function renderHome(){let sub=$('#subtitleText');if(sub)sub.textContent=data.subtitle||'Organiza tu curso';let d=days(data.end);$('#countdown').textContent=(d>=0?d:0)+' días';$('#endLabel').textContent=fmt(data.end);$('#target').textContent=data.target;let a=calcAverage();$('#average').textContent=a===null?'—':a.toFixed(2).replace('.',',');$('#averageHint').textContent=a===null?'Añade tus notas para calcular la media':a>=data.target?'¡Has alcanzado tu objetivo!':`Te faltan ${(data.target-a).toFixed(2)} puntos para tu objetivo`;let streak=streakCount();$('#streakTitle').textContent=streak>0?'Racha activada':'Racha sin activar';$('#streakCount').textContent=streak+' días';$('#streakCard').classList.toggle('active',streak>0);$('#streakCard').classList.toggle('inactive',streak===0);renderOverview()}
 function streakCount(){let n=0,d=new Date();if(!(data.checks[todayISO()]||[]).length)d.setDate(d.getDate()-1);for(let i=0;i<365;i++){let key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if((data.checks[key]||[]).length)n++;else break;d.setDate(d.getDate()-1)}return n}
 function renderOverview(){
  const names=['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
@@ -250,7 +250,7 @@ function renderOverview(){
   const now=new Date(),isToday=now.getDay()===i+1,minutes=now.getHours()*60+now.getMinutes(),progress=Math.max(0,Math.min(1,(minutes-480)/840));
   html+=`<div class="weekdayrow ${isToday&&minutes>=480&&minutes<=1320?'todayrow':''}" ${isToday?'style="--time-progress:'+progress+'"':''}><div class="weekdayname">${name}${hasExam?'<span class="examDot">●</span>':''}</div>${cells}</div>`;
  });
- html+='</div><div class="weeklegend"><span class="legenditem"><i class="legendchip" style="background:#e99a43"></i>Entreno</span><span class="legenditem"><i class="legendchip" style="background:#7eaa9a"></i>Hábitos</span></div>';
+ const sportColor=data.habits.find(h=>h.type==='Entreno'&&h.color)?.color||'#e99a43';const habitColor=data.habits.find(h=>h.type!=='Entreno'&&h.color)?.color||'#7eaa9a';html+='</div><div class="weeklegend"><span class="legenditem"><i class="legendchip" style="background:'+sportColor+'"></i>Entreno</span><span class="legenditem"><i class="legendchip" style="background:'+habitColor+'"></i>Hábitos</span></div>';
  $('#weekOverview').innerHTML=html;
  const freeHours=(freeCells/2).toFixed(1).replace('.0','').replace('.',',');
  $('#freeHours').textContent=freeHours+' h libres';
