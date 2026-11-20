@@ -50,6 +50,7 @@ label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
 .listitem{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
 .count{border:1px solid var(--ink);min-width:62px;text-align:center;padding:7px;font-weight:800;background:var(--panel)}
 .count small{display:block;font-size:9px;letter-spacing:1px}
+.count.urgent{background:#b83232;color:#fff;border-color:#8f2020}
 .subjecthead{display:flex;align-items:center;gap:10px;cursor:pointer}
 .swatch{width:16px;height:16px;border:1px solid #24352b;display:inline-block;flex-shrink:0}
 .diff{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid rgba(25,55,35,.22)}
@@ -84,6 +85,7 @@ dialog.mediaDialog{width:100vw;height:100dvh;max-width:none;max-height:none;marg
 @media(max-width:480px){.app{padding:12px 12px 105px}.formgrid{grid-template-columns:1fr}.card{padding:14px}.widgets{gap:10px}.widget{padding:13px;min-height:125px}.widget .big{font-size:29px}}
 .authGate{max-width:430px;margin:9vh auto 30px;padding:22px;background:var(--panel);border:1.5px solid var(--ink);box-shadow:var(--shadow)}
 .authGate h2{margin-top:0}.authGate input{width:100%;margin:5px 0 12px}.authGate .btn{width:100%;margin:5px 0}.authStatus{min-height:22px;color:var(--muted);font-size:13px}.accountbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;font-size:12px;color:var(--muted)}
+.themeDialog{width:min(420px,calc(100% - 28px));max-height:85vh;overflow:auto}.themeDialog .mediaHeader{margin-bottom:8px}.themeOptions{display:grid;gap:9px;margin-top:14px}.themeOption{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-align:left;border-radius:9px}.themeOption.selected{border:2px solid var(--green)}.themeOptionName{font-weight:700}.themeSwatches{display:flex;gap:8px}.themeSwatches i{width:25px;height:25px;border-radius:50%;border:2px solid;display:block}
 </style>
 </head>
 <body>
@@ -98,7 +100,7 @@ dialog.mediaDialog{width:100vw;height:100dvh;max-width:none;max-height:none;marg
  <p class="authStatus" id="authStatus">Si todavía no tienes cuenta, pulsa «Crear cuenta».</p>
 </section>
 <div class="app" id="mainApp">
-<header><div><div class="kicker">CURSO 2026/2027 · 4.º ESO</div><h1>KAOS<br><em id="subtitleText">Organiza tu curso</em></h1><button class="editSubtitle" onclick="editSubtitle()">Editar texto</button></div><div class="topicons"><button class="iconbtn" onclick="toggleTheme()" aria-label="Tema">⚙</button></div></header>
+<header><div><div class="kicker">CURSO 2026/2027 · 4.º ESO</div><h1>KAOS<br><em id="subtitleText">Organiza tu curso</em></h1><button class="editSubtitle" onclick="editSubtitle()">Editar texto</button></div><div class="topicons"><button class="iconbtn" onclick="toggleTheme()" aria-label="Colores de la aplicación">⚙</button></div></header>
 <div class="accountbar"><span id="accountEmail"></span><button class="btn" type="button" onclick="logoutKAOS()">Cerrar sesión</button><span id="syncStatus">Sincronización pendiente</span></div>
 <div class="streak"><span class="flame">♨</span><strong id="streakTitle">Racha sin activar</strong><span id="streakCount">0 días</span></div>
 <div class="widgets">
@@ -119,6 +121,7 @@ dialog.mediaDialog{width:100vw;height:100dvh;max-width:none;max-height:none;marg
 </div>
 <div class="stickyAction" id="stickyAction"><button onclick="quickAdd()">＋ Añadir al horario</button></div>
 <dialog id="dlg"><form id="dlgForm"><h2 id="dlgTitle">Añadir</h2><div id="dlgBody"></div><div class="dialogactions"><button class="btn" type="button" onclick="closeDlg()">Cancelar</button><button class="btn primary" id="dlgSave" type="button" onclick="submitDlg()">Guardar</button></div></form></dialog>
+<dialog id="themeDlg" class="themeDialog"><div class="mediaHeader"><div><div class="kicker">PERSONALIZACIÓN</div><h2>Colores de KAOS</h2></div><button class="iconbtn" type="button" onclick="closeThemeMenu()" aria-label="Cerrar">×</button></div><p class="muted small">Elige la gama de colores de la aplicación.</p><div id="themeOptions" class="themeOptions"></div></dialog>
 <dialog id="mediaDlg" class="mediaDialog"><div class="mediaHeader"><div><div class="kicker">SEGUIMIENTO DE NOTAS</div><h2>Tu media</h2></div><button class="iconbtn" type="button" onclick="closeMedia()" aria-label="Cerrar">×</button></div><div id="mediaSummary"></div><div class="row mediaTerms" id="mediaTerms"><button class="btn primary" data-media-term="all">Curso</button><button class="btn" data-media-term="1">1</button><button class="btn" data-media-term="2">2</button><button class="btn" data-media-term="3">3</button></div><div id="mediaSubjects"></div></dialog>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -169,7 +172,25 @@ function setTab(t){$$('.panel').forEach(p=>p.classList.toggle('active',p.id===t)
 $('#tabs').addEventListener('click',e=>{let b=e.target.closest('button[data-tab]');if(b)setTab(b.dataset.tab)});
 function quickAdd(){let t=$('.panel.active').id;if(t==='fechas')eventDialog();else if(t==='habitos')habitDialog();else if(t==='temario')subjectDialog();else if(t==='notas')gradeDialog();else scheduleDialog()}
 function editSubtitle(){let current=data.subtitle||'Organiza tu curso';let value=prompt('¿Qué texto quieres debajo de KAOS?',current);if(value===null)return;data.subtitle=value.trim();save()}
-function toggleTheme(){data.theme=data.theme==='dark'?'light':'dark';document.body.classList.toggle('dark',data.theme==='dark');localStorage.setItem('kaosDataV2',JSON.stringify(data));pushCloudData();}
+const themePalettes={
+ green:{name:'Verde',light:['#eef2ed','#fbfcfa','#24352b','#69796d','#d7e1d8','#668b70','#dce9de'],dark:['#17221b','#223027','#edf4ee','#b0c0b3','#405344','#a4c3a8','#304737']},
+ red:{name:'Rojo',light:['#f4eeee','#fffafa','#392525','#806969','#e5d5d5','#a94f4f','#f0dada'],dark:['#281919','#382525','#f7eeee','#cbb0b0','#594040','#d58b8b','#4b2c2c']},
+ blue:{name:'Azul',light:['#edf2f6','#fbfdff','#243344','#68798b','#d5e0e9','#5d83a8','#d9e6f1'],dark:['#17232e','#22313e','#edf4fa','#afbfce','#3e5365','#9bbbd8','#2d4356']},
+ yellow:{name:'Amarillo',light:['#f5f2e8','#fffdf7','#3b3522','#81775e','#e6dfc9','#a58b45','#f0e8c9'],dark:['#292517','#39321f','#f7f2df','#c9bd98','#5b5136','#d4bd75','#4a4028']},
+ purple:{name:'Morado',light:['#f1eef5','#fdfbff','#30283b','#786d85','#ded7e7','#8266a3','#e7def1'],dark:['#211b2b','#30263d','#f4eefb','#c0b4ce','#4c405d','#b39acb','#40334f']}
+};
+function applyPalette(){
+ const p=themePalettes[data.palette]||themePalettes.green,v=p[data.theme==='dark'?'dark':'light'];
+ ['--bg','--panel','--ink','--muted','--line','--green','--green2'].forEach((k,i)=>document.body.style.setProperty(k,v[i]));
+}
+function toggleTheme(){openThemeMenu()}
+function closeThemeMenu(){$('#themeDlg').close()}
+function choosePalette(name){if(!themePalettes[name])return;data.palette=name;applyPalette();localStorage.setItem('kaosDataV2',JSON.stringify(data));pushCloudData();renderThemeOptions();closeThemeMenu()}
+function renderThemeOptions(){
+ $('#themeOptions').innerHTML=Object.entries(themePalettes).map(([key,p])=>{const a=p.light,b=p.dark;return `<button type="button" class="themeOption ${(data.palette||'green')===key?'selected':''}" onclick="choosePalette('${key}')"><span class="themeOptionName">${p.name}</span><span class="themeSwatches"><i style="background:${a[0]};border-color:${a[2]}"></i><i style="background:${b[0]};border-color:${b[2]}"></i></span></button>`}).join('');
+}
+function openThemeMenu(){renderThemeOptions();$('#themeDlg').showModal()}
+
 function changeEnd(){openDlg('Fin de curso',`<label>Fecha de fin de curso</label><input class="field" name="date" type="date" value="${data.end}">`,f=>{data.end=f.get('date');save()})}
 function changeTarget(){openDlg('Nota objetivo',`<label>Media que quieres conseguir</label><input class="field" name="target" type="number" min="0" max="10" step=".1" value="${data.target}">`,f=>{data.target=+f.get('target');save()})}
 function subjectAverage(s,term='all'){let gs=s.grades||[];if(term!=='all'){let a=gs.filter(g=>g.term===+term),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null}let means=[1,2,3].map(t=>{let a=gs.filter(g=>g.term===t),w=a.reduce((n,g)=>n+g.weight,0);return w?a.reduce((n,g)=>n+g.grade*g.weight,0)/w:null});let weights=s.terms||[33,33,34],usable=means.map((v,i)=>v===null?0:weights[i]),total=usable.reduce((a,b)=>a+b,0);return total?means.reduce((a,v,i)=>a+(v===null?0:v*usable[i]),0)/total:null}
@@ -279,12 +300,12 @@ function renderToday(){
  let ev=data.events.filter(e=>e.date===today);$('#todayEvents').innerHTML=ev.length?ev.map(e=>{let color=subject(e.subject)?.color||'#a9c9ad';return `<div class="listitem"><b style="text-decoration:underline;text-decoration-color:${color};text-decoration-thickness:2px;text-underline-offset:3px">${esc(e.type)}</b><span>${esc(subject(e.subject)?.name||'')} · ${esc(e.title)}</span></div>`}).join(''):'<p class="muted">No tienes exámenes ni entregas hoy.</p>';
  let limit=new Date(today+'T00:00:00');limit.setDate(limit.getDate()+7);let limitISO=limit.getFullYear()+'-'+String(limit.getMonth()+1).padStart(2,'0')+'-'+String(limit.getDate()).padStart(2,'0');
  let upcoming=data.events.filter(e=>e.date>today&&e.date<=limitISO).sort((a,b)=>a.date.localeCompare(b.date));
- $('#upcomingEvents').innerHTML=upcoming.length?upcoming.map(e=>{let d=days(e.date),color=subject(e.subject)?.color||'#a9c9ad';return `<div class="listitem"><div class="count">${d}<small>DÍAS</small></div><div style="flex:1"><b style="text-decoration:underline;text-decoration-color:${color};text-decoration-thickness:2px;text-underline-offset:3px">${esc(e.type)}</b> · ${esc(subject(e.subject)?.name||'')}<div>${esc(e.title)} · ${fmt(e.date)}</div></div></div>`}).join(''):'<p class="muted">No tienes exámenes ni entregas en los próximos siete días.</p>';
+ $('#upcomingEvents').innerHTML=upcoming.length?upcoming.map(e=>{let d=days(e.date),color=subject(e.subject)?.color||'#a9c9ad';return `<div class="listitem"><div class="count ${d<=3?'urgent':''}">${d}<small>DÍAS</small></div><div style="flex:1"><b style="text-decoration:underline;text-decoration-color:${color};text-decoration-thickness:2px;text-underline-offset:3px">${esc(e.type)}</b> · ${esc(subject(e.subject)?.name||'')}<div>${esc(e.title)} · ${fmt(e.date)}</div></div></div>`}).join(''):'<p class="muted">No tienes exámenes ni entregas en los próximos siete días.</p>';
  let hs=data.habits.filter(dueToday),done=data.checks[today]||[];$('#habitTodayCount').textContent=done.length+' de '+hs.length;$('#todayHabits').innerHTML=hs.length?hs.map(h=>`<div class="listitem"><input type="checkbox" ${done.includes(h.id)?'checked':''} onchange="toggleHabit(${h.id},this.checked)"><div style="flex:1"><b>${esc(h.name)}</b><div class="muted small">${h.type}${h.time?' · '+h.time:''}</div></div></div>`).join(''):'<p class="muted">No tienes hábitos programados para hoy.</p>';
 }
 function toggleHabit(id,on){let a=data.checks[todayISO()]||[];data.checks[todayISO()]=on?[...new Set([...a,id])]:a.filter(x=>x!==id);save()}
 function searchPrompt(){let q=prompt('¿Qué quieres buscar?');if(!q)return;let match=data.subjects.find(s=>s.name.toLowerCase().includes(q.toLowerCase()));if(match){setTab('temario');document.getElementById('sub'+match.id)?.classList.add('open')}else alert('No he encontrado esa asignatura.')}
-function render(){document.body.classList.toggle('dark',data.theme==='dark');renderHome();$('#fullSchedule').innerHTML=renderSchedule();renderEvents();renderSubjects();renderGrades();renderHabits();renderToday()}
+function render(){document.body.classList.toggle('dark',data.theme==='dark');applyPalette();renderHome();$('#fullSchedule').innerHTML=renderSchedule();renderEvents();renderSubjects();renderGrades();renderHabits();renderToday()}
 render();
 setInterval(()=>renderOverview(),60000);
 if(firebaseConfigured){
