@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#edf2ed">
 <meta name="description" content="KAOS, tu organizador personal">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link id="manifestLink" rel="manifest" href="manifest-green.json">
+<link id="appIcon" rel="icon" href="icon-green.svg" type="image/svg+xml">
 <title>KAOS</title>
 <style>
 :root{--bg:#eef2ed;--panel:#fbfcfa;--ink:#24352b;--muted:#69796d;--line:#d7e1d8;--green:#668b70;--green2:#dce9de;--shadow:5px 6px 0 #24352b18}
@@ -121,7 +121,7 @@ dialog.mediaDialog{width:100vw;height:100dvh;max-width:none;max-height:none;marg
 </div>
 <div class="stickyAction" id="stickyAction"><button onclick="quickAdd()">＋ Añadir al horario</button></div>
 <dialog id="dlg"><form id="dlgForm"><h2 id="dlgTitle">Añadir</h2><div id="dlgBody"></div><div class="dialogactions"><button class="btn" type="button" onclick="closeDlg()">Cancelar</button><button class="btn primary" id="dlgSave" type="button" onclick="submitDlg()">Guardar</button></div></form></dialog>
-<dialog id="themeDlg" class="themeDialog"><div class="mediaHeader"><div><div class="kicker">PERSONALIZACIÓN</div><h2>Colores de KAOS</h2></div><button class="iconbtn" type="button" onclick="closeThemeMenu()" aria-label="Cerrar">×</button></div><p class="muted small">Elige la gama de colores de la aplicación.</p><div id="themeOptions" class="themeOptions"></div></dialog>
+<dialog id="themeDlg" class="themeDialog"><div class="mediaHeader"><div><div class="kicker">PERSONALIZACIÓN</div><h2>Colores de KAOS</h2></div><button class="iconbtn" type="button" onclick="closeThemeMenu()" aria-label="Cerrar">×</button></div><p class="muted small">Color de la aplicación</p><div id="themeOptions" class="themeOptions"></div><div class="themeDivider"></div><p class="muted small">Color del icono de KAOS</p><div id="iconThemeOptions" class="themeOptions"></div></dialog>
 <dialog id="mediaDlg" class="mediaDialog"><div class="mediaHeader"><div><div class="kicker">SEGUIMIENTO DE NOTAS</div><h2>Tu media</h2></div><button class="iconbtn" type="button" onclick="closeMedia()" aria-label="Cerrar">×</button></div><div id="mediaSummary"></div><div class="row mediaTerms" id="mediaTerms"><button class="btn primary" data-media-term="all">Curso</button><button class="btn" data-media-term="1">1</button><button class="btn" data-media-term="2">2</button><button class="btn" data-media-term="3">3</button></div><div id="mediaSubjects"></div></dialog>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -174,7 +174,7 @@ function quickAdd(){let t=$('.panel.active').id;if(t==='fechas')eventDialog();el
 function editSubtitle(){let current=data.subtitle||'Organiza tu curso';let value=prompt('¿Qué texto quieres debajo de KAOS?',current);if(value===null)return;data.subtitle=value.trim();save()}
 const themePalettes={
  green:{name:'Verde',light:['#eef2ed','#fbfcfa','#24352b','#69796d','#d7e1d8','#668b70','#dce9de'],dark:['#17221b','#223027','#edf4ee','#b0c0b3','#405344','#a4c3a8','#304737']},
- red:{name:'Rojo',light:['#f4eeee','#fffafa','#392525','#806969','#e5d5d5','#a94f4f','#f0dada'],dark:['#281919','#382525','#f7eeee','#cbb0b0','#594040','#d58b8b','#4b2c2c']},
+ pink:{name:'Rosa',light:['#f6edf1','#fffafd','#3d2932','#806a74','#ead9e1','#b86f90','#f1dce6'],dark:['#291c23','#392832','#faeff5','#cbb4bf','#59404d','#d99ab5','#4a2d3b']},
  blue:{name:'Azul',light:['#edf2f6','#fbfdff','#243344','#68798b','#d5e0e9','#5d83a8','#d9e6f1'],dark:['#17232e','#22313e','#edf4fa','#afbfce','#3e5365','#9bbbd8','#2d4356']},
  yellow:{name:'Amarillo',light:['#f5f2e8','#fffdf7','#3b3522','#81775e','#e6dfc9','#a58b45','#f0e8c9'],dark:['#292517','#39321f','#f7f2df','#c9bd98','#5b5136','#d4bd75','#4a4028']},
  purple:{name:'Morado',light:['#f1eef5','#fdfbff','#30283b','#786d85','#ded7e7','#8266a3','#e7def1'],dark:['#211b2b','#30263d','#f4eefb','#c0b4ce','#4c405d','#b39acb','#40334f']}
@@ -185,9 +185,13 @@ function applyPalette(){
 }
 function toggleTheme(){openThemeMenu()}
 function closeThemeMenu(){$('#themeDlg').close()}
-function choosePalette(name){if(!themePalettes[name])return;data.palette=name;applyPalette();localStorage.setItem('kaosDataV2',JSON.stringify(data));pushCloudData();renderThemeOptions();closeThemeMenu()}
+function choosePalette(name){if(!themePalettes[name])return;data.palette=name;applyPalette();localStorage.setItem('kaosDataV2',JSON.stringify(data));pushCloudData();renderThemeOptions()}
+function chooseIconPalette(name){if(!['green','pink','blue','yellow','purple'].includes(name))return;data.iconPalette=name;applyIconPalette();localStorage.setItem('kaosDataV2',JSON.stringify(data));pushCloudData();renderThemeOptions()}
+function applyIconPalette(){const name=['green','pink','blue','yellow','purple'].includes(data.iconPalette)?data.iconPalette:'green';$('#appIcon').href='icon-'+name+'.svg';$('#manifestLink').href='manifest-'+name+'.json'}
 function renderThemeOptions(){
  $('#themeOptions').innerHTML=Object.entries(themePalettes).map(([key,p])=>{const a=p.light,b=p.dark;return `<button type="button" class="themeOption ${(data.palette||'green')===key?'selected':''}" onclick="choosePalette('${key}')"><span class="themeOptionName">${p.name}</span><span class="themeSwatches"><i style="background:${a[0]};border-color:${a[2]}"></i><i style="background:${b[0]};border-color:${b[2]}"></i></span></button>`}).join('');
+ const iconColors={green:'#789185',pink:'#c77e9d',blue:'#6d91ba',yellow:'#b69b48',purple:'#9275b5'};
+ $('#iconThemeOptions').innerHTML=Object.entries(iconColors).map(([key,color])=>`<button type="button" class="themeOption ${(data.iconPalette||'green')===key?'selected':''}" onclick="chooseIconPalette('${key}')"><span class="themeOptionName">${({green:'Verde',pink:'Rosa',blue:'Azul',yellow:'Amarillo',purple:'Morado'})[key]}</span><span class="themeSwatches"><i style="background:${color};border-color:${color}"></i></span></button>`).join('');
 }
 function openThemeMenu(){renderThemeOptions();$('#themeDlg').showModal()}
 
@@ -305,7 +309,7 @@ function renderToday(){
 }
 function toggleHabit(id,on){let a=data.checks[todayISO()]||[];data.checks[todayISO()]=on?[...new Set([...a,id])]:a.filter(x=>x!==id);save()}
 function searchPrompt(){let q=prompt('¿Qué quieres buscar?');if(!q)return;let match=data.subjects.find(s=>s.name.toLowerCase().includes(q.toLowerCase()));if(match){setTab('temario');document.getElementById('sub'+match.id)?.classList.add('open')}else alert('No he encontrado esa asignatura.')}
-function render(){document.body.classList.toggle('dark',data.theme==='dark');applyPalette();renderHome();$('#fullSchedule').innerHTML=renderSchedule();renderEvents();renderSubjects();renderGrades();renderHabits();renderToday()}
+function render(){document.body.classList.toggle('dark',data.theme==='dark');applyPalette();applyIconPalette();renderHome();$('#fullSchedule').innerHTML=renderSchedule();renderEvents();renderSubjects();renderGrades();renderHabits();renderToday()}
 render();
 setInterval(()=>renderOverview(),60000);
 if(firebaseConfigured){
