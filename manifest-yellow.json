@@ -1,0 +1,15 @@
+{
+  "name": "KAOS · Organizador personal",
+  "short_name": "KAOS",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f0dc",
+  "theme_color": "#b69b48",
+  "icons": [
+    {
+      "src": "icon-yellow.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
