@@ -63,7 +63,7 @@ label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
 .weektimeline{width:100%;min-width:0}
 .weekaxis,.weekdayrow{display:grid;grid-template-columns:42px repeat(28,minmax(0,1fr));gap:2px;align-items:center}
 .weekaxis{margin:2px 0 7px;color:var(--muted);font-size:10px;min-height:18px;align-items:center;line-height:1.2}
-.weekaxis span{grid-column:span 1;text-align:center;white-space:nowrap;align-self:center;line-height:1.2}
+.weekaxis span{grid-column:span 1;text-align:left;white-space:nowrap;align-self:center;line-height:1.2}
 .weekaxis .axislabel{grid-column:1;text-align:left}
 .weekdayrow{margin:7px 0;min-height:27px}
 .weekdayrow{position:relative}.weekdayrow.todayrow::after{content:'';position:absolute;top:-3px;bottom:-3px;left:calc(42px + (100% - 42px)*var(--time-progress));width:2px;background:var(--time-marker);border-radius:2px;z-index:4;pointer-events:none}@media(max-width:480px){.weekdayrow.todayrow::after{left:calc(34px + (100% - 34px)*var(--time-progress))}}
