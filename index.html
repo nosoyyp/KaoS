@@ -223,7 +223,7 @@ function renderOverview(){
  let html='<div class="weektimeline"><div class="weekaxis"><span class="axislabel"></span>';
  const axis=[['8',0],['11',6],['14',12],['17',18],['20',24],['22',28]];
  let last=0;
- axis.forEach(([label,pos])=>{const column=pos===28?29:pos+2;html+=`<span style="grid-column:${column};text-align:${pos===28?'right':'center'}">${label}</span>`});
+ axis.forEach(([label,pos])=>{const column=pos===28?29:pos+2;html+=`<span style="grid-column:${column};text-align:${pos===28?'right':'left'}">${label}</span>`});
  html+='</div>';
  let freeCells=0,totalCells=0;
  names.forEach((name,i)=>{
