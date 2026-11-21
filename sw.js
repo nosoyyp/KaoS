@@ -1,4 +1,4 @@
-const CACHE='kaos-v31';
+const CACHE='kaos-v32';
 const FILES=['./','./index.html','./manifest.json','./icon.svg','./manifest-green.json','./icon-green.svg','./manifest-pink.json','./icon-pink.svg','./manifest-blue.json','./icon-blue.svg','./manifest-yellow.json','./icon-yellow.svg','./manifest-purple.json','./icon-purple.svg','./manifest-green-dark.json','./icon-green-dark.svg','./manifest-pink-dark.json','./icon-pink-dark.svg','./manifest-blue-dark.json','./icon-blue-dark.svg','./manifest-yellow-dark.json','./icon-yellow-dark.svg','./manifest-purple-dark.json','./icon-purple-dark.svg'];
 self.addEventListener('install',event=>{self.skipWaiting();event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
